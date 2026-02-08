@@ -111,6 +111,7 @@
         <a href="#projects">Projects</a>
         <a href="#math">Math Lab</a>
         <a href="#contact">Contact</a>
+        <button id="themeToggle" class="theme-btn">Dark Mode</button>
       </div>
     </div>
   </nav>
@@ -211,7 +212,16 @@ print("Fibonacci (10 terms):", fib(10))
 
     <footer>© 2026 Your Name • Built with MathJax + PyScript</footer>
   </div>
+  <script>
+  const toggle = document.getElementById("themeToggle");
+  toggle.addEventListener("click", () => {
+    document.body.classList.toggle("light");
+    toggle.textContent = document.body.classList.contains("light") ? "Dark Mode" : "Light Mode";
+  });
+</script>
+
 </body>
 </html>
+
 
 
