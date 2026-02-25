@@ -598,6 +598,164 @@ async function predictAIScore() {
     out.textContent = `Prediction failed: ${err.message}`;
   }
 }
+function buildBaseResponse(type) {
+  return {
+    type,
+    analysis: {
+      domain: "",
+      range: "",
+      derivative: "",
+      symmetry: ""
+    },
+    key_points: {
+      roots: [],
+      vertex: [],
+      intersections: [],
+      critical_points: []
+    },
+    graph: {
+      expression: "",
+      highlight_points: []
+    },
+    explanation_steps: "",
+    chat_summary: ""
+  };
+}
+
+function parseQuadraticExpr(expr) {
+  const s = expr.replace(/\s+/g, "").replace(/\*/g, "");
+  const terms = s.match(/[+\-]?[^+\-]+/g);
+  if (!terms) return null;
+
+  let a = 0;
+  let b = 0;
+  let c = 0;
+
+  for (const t0 of terms) {
+    const t = t0.replace(/X/g, "x");
+    if (t.includes("x^2")) {
+      const k = t.replace("x^2", "");
+      const v = k === "" || k === "+" ? 1 : k === "-" ? -1 : Number(k);
+      if (Number.isNaN(v)) return null;
+      a += v;
+    } else if (t.includes("x")) {
+      const k = t.replace("x", "");
+      const v = k === "" || k === "+" ? 1 : k === "-" ? -1 : Number(k);
+      if (Number.isNaN(v)) return null;
+      b += v;
+    } else {
+      const v = Number(t);
+      if (Number.isNaN(v)) return null;
+      c += v;
+    }
+  }
+
+  return { a, b, c };
+}
+
+function analyzeMathInput(rawInput) {
+  const input = (rawInput || "").trim();
+  if (!input) {
+    const out = buildBaseResponse("Other");
+    out.explanation_steps = "Please provide a mathematical input.";
+    out.chat_summary = "Try: f(x)=x^2-4x+3 or x^2-5x+6=0";
+    return out;
+  }
+
+  const isFunction = /^\s*(f\(x\)|y)\s*=/.test(input);
+  const isEquation = input.includes("=") && !isFunction;
+
+  let type = "Other";
+  if (isFunction) type = "Function";
+  else if (isEquation) type = "Equation";
+  else if (/[<>]=?|≤|≥/.test(input)) type = "Inequality";
+  else if (/^(d\/dx|derivative)/i.test(input)) type = "Derivative";
+  else if (/^(∫|integral)/i.test(input)) type = "Integral";
+
+  const out = buildBaseResponse(type);
+
+  if (type === "Function" || type === "Equation") {
+    let expr = "";
+    if (type === "Function") {
+      expr = input.replace(/^\s*(f\(x\)|y)\s*=/, "");
+    } else {
+      const parts = input.split("=");
+      if (parts.length !== 2) {
+        out.explanation_steps = "Equation format is invalid.";
+        out.chat_summary = "Use format like x^2-5x+6=0";
+        return out;
+      }
+      expr = `(${parts[0]})-(${parts[1]})`;
+      if (parts[1].trim() === "0") expr = parts[0];
+    }
+
+    const q = parseQuadraticExpr(expr);
+    if (!q) {
+      out.explanation_steps = "Recognized input, but parser currently supports quadratic polynomial form.";
+      out.chat_summary = "Rewrite into ax^2+bx+c form.";
+      out.graph.expression = type === "Function" ? `y=${expr}` : "";
+      return out;
+    }
+
+    const { a, b, c } = q;
+    if (a === 0) {
+      out.analysis.domain = "All real numbers";
+      out.analysis.range = b === 0 ? `${formatNum(c)}` : "All real numbers";
+      out.analysis.derivative = `${formatNum(b)}`;
+      out.analysis.symmetry = "None";
+      out.graph.expression = `y=${formatNum(b)}x${c >= 0 ? "+" : ""}${formatNum(c)}`;
+      if (b !== 0) out.key_points.roots = [[-c / b, 0]];
+      out.key_points.intersections = [[0, c], ...out.key_points.roots];
+      out.graph.highlight_points = out.key_points.intersections;
+      out.explanation_steps = "Input simplifies to a linear expression.";
+      out.chat_summary = "This is a line (not a parabola).";
+      return out;
+    }
+
+    const d = b * b - 4 * a * c;
+    const vx = -b / (2 * a);
+    const vy = a * vx * vx + b * vx + c;
+
+    out.analysis.domain = "All real numbers";
+    out.analysis.range = a > 0 ? `[${formatNum(vy)}, +infinity)` : `(-infinity, ${formatNum(vy)}]`;
+    out.analysis.derivative = `${formatNum(2 * a)}x${b >= 0 ? "+" : ""}${formatNum(b)}`;
+    out.analysis.symmetry = `About line x=${formatNum(vx)}`;
+
+    if (d > 0) {
+      const r1 = (-b - Math.sqrt(d)) / (2 * a);
+      const r2 = (-b + Math.sqrt(d)) / (2 * a);
+      out.key_points.roots = [[r1, 0], [r2, 0]];
+    } else if (d === 0) {
+      const r = -b / (2 * a);
+      out.key_points.roots = [[r, 0]];
+    }
+
+    out.key_points.vertex = [vx, vy];
+    out.key_points.intersections = [[0, c], ...out.key_points.roots];
+    out.key_points.critical_points = [[vx, vy]];
+
+    out.graph.expression = `y=${formatNum(a)}x^2${b >= 0 ? "+" : ""}${formatNum(b)}x${c >= 0 ? "+" : ""}${formatNum(c)}`;
+    out.graph.highlight_points = [...out.key_points.roots, [vx, vy], [0, c]];
+
+    out.explanation_steps = `1) Identify a=${formatNum(a)}, b=${formatNum(b)}, c=${formatNum(c)}. 2) Compute D=b^2-4ac=${formatNum(d)}. 3) Find roots and vertex. 4) Build graph expression.`;
+    out.chat_summary = a > 0 ? "Parabola opens upward (minimum at vertex)." : "Parabola opens downward (maximum at vertex).";
+    return out;
+  }
+
+  out.explanation_steps = `Detected type: ${type}. Full solver for this type is not implemented yet.`;
+  out.chat_summary = "Type recognized. Quadratic function/equation currently has full analysis.";
+  return out;
+}
+
+function runMathAnalysisEngine() {
+  const input = byId("analysisInput");
+  const output = byId("analysisJson");
+  if (!input || !output) return;
+  const result = analyzeMathInput(input.value);
+  output.className = "result";
+  output.textContent = JSON.stringify(result, null, 2);
+}
+
 
 function setupEvents() {
   byId("analysisRun").addEventListener("click", runMathAnalysisEngine);
