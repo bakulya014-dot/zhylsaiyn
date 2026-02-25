@@ -600,6 +600,8 @@ async function predictAIScore() {
 }
 
 function setupEvents() {
+  byId("analysisRun").addEventListener("click", runMathAnalysisEngine);
+
   pairInputAndRange("qa", "qaRange", solveQuadratic);
   pairInputAndRange("qb", "qbRange", solveQuadratic);
   pairInputAndRange("qc", "qcRange", solveQuadratic);
@@ -633,16 +635,18 @@ function setupEvents() {
   byId("challengeCheck").addEventListener("click", checkChallenge);
   byId("aiPredictBtn").addEventListener("click", predictAIScore);
 
-  ["qa", "qb", "qc", "fibTerms", "calcInput", "challengeAnswer"].forEach((id) => {
+  ["qa", "qb", "qc", "fibTerms", "calcInput", "challengeAnswer", "analysisInput"].forEach((id) => {
     byId(id).addEventListener("keydown", (e) => {
       if (e.key !== "Enter") return;
       if (id === "fibTerms") fibGenerate();
       else if (id === "calcInput") calcEvaluate();
       else if (id === "challengeAnswer") checkChallenge();
+      else if (id === "analysisInput") runMathAnalysisEngine();
       else solveQuadratic();
     });
   });
 }
+
 
 function init() {
   setupTheme();
