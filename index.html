@@ -18,6 +18,30 @@
   <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
   <link rel="stylesheet" href="style.css" />
+   <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script defer src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dc95feca6b9f6f2f9db2f9c8e6c393a7"></script>
+  <link rel="stylesheet" href="style.css" />
+        </article>
+
+        <article class="math-box">
+          <h3>Math AI Chat + Desmos</h3>
+          <p class="small">Chat with the math engine, then plot analyzed expressions in Desmos.</p>
+          <div id="chatLog" class="chat-log" aria-live="polite"></div>
+          <label for="chatInput">Ask a math question</label>
+          <input id="chatInput" type="text" placeholder="Example: solve x^2-5x+6=0" />
+          <div class="btn-row">
+            <button class="action" type="button" id="chatSend">Send</button>
+            <button class="action" type="button" id="chatClear">Clear Chat</button>
+            <label class="small chat-opt"><input id="useWolfram" type="checkbox" /> Use Wolfram (optional)</label>
+          </div>
+          <div id="chatStatus" class="small">Wolfram works only if window.__WOLFRAM_APP_ID is set.</div>
+          <div id="desmosGraph" class="desmos-graph" aria-label="Desmos graph"></div>
+          <div class="btn-row">
+            <button class="action" type="button" id="desmosPlot">Plot From Analysis Input</button>
+            <button class="action" type="button" id="desmosClear">Clear Graph</button>
+          </div>
+        </article>
+      </div>
 </head>
 <body>
   <nav class="nav">
@@ -241,6 +265,7 @@ AI Research & Mathematical Systems Developer</h1>
 <script src="app.js"></script>
 </body>
 </html>
+
 
 
 
