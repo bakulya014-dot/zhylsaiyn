@@ -87,7 +87,10 @@ function parseQuadraticPolynomial(polyInput) {
   const terms = poly.match(/[+\-]?[^+\-]+/g);
   if (!terms) return null;
 
-  let a = 0, b = 0, c = 0;
+  let a = 0;
+  let b = 0;
+  let c = 0;
+
   for (const rawTerm of terms) {
     const term = rawTerm.replace(/X/g, "x");
     if (!term) return null;
@@ -109,6 +112,7 @@ function parseQuadraticPolynomial(polyInput) {
     if (Number.isNaN(constant)) return null;
     c += constant;
   }
+
   return { a, b, c };
 }
 
@@ -162,9 +166,22 @@ function classifyMathInput(input) {
 function buildBaseResponse(type) {
   return {
     type,
-    analysis: { domain: "", range: "", derivative: "", symmetry: "" },
-    key_points: { roots: [], vertex: [], intersections: [], critical_points: [] },
-    graph: { expression: "", highlight_points: [] },
+    analysis: {
+      domain: "",
+      range: "",
+      derivative: "",
+      symmetry: ""
+    },
+    key_points: {
+      roots: [],
+      vertex: [],
+      intersections: [],
+      critical_points: []
+    },
+    graph: {
+      expression: "",
+      highlight_points: []
+    },
     explanation_steps: "",
     chat_summary: ""
   };
@@ -172,6 +189,7 @@ function buildBaseResponse(type) {
 
 function analyzeQuadratic(a, b, c, sourceType) {
   const out = buildBaseResponse(sourceType);
+
   if (a === 0) {
     const root = b === 0 ? null : -c / b;
     out.analysis.domain = "All real numbers";
@@ -216,15 +234,18 @@ function analyzeQuadratic(a, b, c, sourceType) {
   out.graph.highlight_points = [...out.key_points.roots, out.key_points.vertex, [0, c]];
 
   const extremaText =
-    a > 0 ? `Minimum value is ${formatNum(vy)} at x=${formatNum(vx)}.` : `Maximum value is ${formatNum(vy)} at x=${formatNum(vx)}.`;
+    a > 0
+      ? `Minimum value is ${formatNum(vy)} at x=${formatNum(vx)}.`
+      : `Maximum value is ${formatNum(vy)} at x=${formatNum(vx)}.`;
   out.explanation_steps =
     `1) Convert to standard form y=${formatQuadratic(a, b, c)}. ` +
     `2) Compute D=b^2-4ac=${formatNum(d)} to classify roots. ` +
     `3) Compute vertex (${formatNum(vx)}, ${formatNum(vy)}), axis x=${formatNum(vx)}, and derivative y'=${derivative}. ` +
     `4) ${extremaText}`;
-  out.chat_summary = a > 0
-    ? "Parabola opens upward, so the vertex is the minimum point."
-    : "Parabola opens downward, so the vertex is the maximum point.";
+  out.chat_summary =
+    a > 0
+      ? "Parabola opens upward, so the vertex is the minimum point."
+      : "Parabola opens downward, so the vertex is the maximum point.";
   return out;
 }
 
@@ -234,6 +255,7 @@ function solveSingleVariableEquation(equation) {
   const left = parseQuadraticPolynomial(parts[0]);
   const right = parseQuadraticPolynomial(parts[1]);
   if (!left || !right) return null;
+
   const a = left.a - right.a;
   const b = left.b - right.b;
   const c = left.c - right.c;
@@ -251,11 +273,10 @@ function solveSimpleLinearSystem(lines) {
 }
 
 function analyzeMathInput(rawInput) {
-  const cleanedInput = input.replace(/^\s*solve\s+/i, "");
-
-  const type = classifyMathInput(rawInput);
+  const raw = (rawInput || "").trim();
+  const clean = raw.replace(/^\s*solve\s+/i, "").trim();
+  const type = classifyMathInput(clean);
   const out = buildBaseResponse(type);
-  const clean = (rawInput || "").trim();
 
   if (!clean) {
     out.explanation_steps = "Provide a math input to analyze.";
@@ -267,6 +288,7 @@ function analyzeMathInput(rawInput) {
     const rhs = clean.replace(/^\s*(f\(x\)|y)\s*=/, "");
     const parsed = parseQuadraticPolynomial(rhs);
     if (parsed) return analyzeQuadratic(parsed.a, parsed.b, parsed.c, "Function");
+
     out.analysis.domain = "Unable to determine automatically";
     out.graph.expression = rhs ? `y=${rhs}` : "";
     out.explanation_steps = "Detected as a function, but only quadratic-form extraction is implemented in this panel.";
@@ -279,9 +301,7 @@ function analyzeMathInput(rawInput) {
     if (parts.length === 2) {
       const left = parseQuadraticPolynomial(parts[0]);
       const right = parseQuadraticPolynomial(parts[1]);
-      if (left && right) {
-        return analyzeQuadratic(left.a - right.a, left.b - right.b, left.c - right.c, "Equation");
-      }
+      if (left && right) return analyzeQuadratic(left.a - right.a, left.b - right.b, left.c - right.c, "Equation");
     }
     out.explanation_steps = "Detected as an equation, but automatic solving currently supports quadratic polynomial equations.";
     out.chat_summary = "Use format like x^2-5x+6=0 for full output.";
@@ -333,12 +353,16 @@ function runMathAnalysisEngine() {
   const output = byId("analysisJson");
   const status = byId("chatStatus");
   if (!input || !output) return;
+
   const result = analyzeMathInput(input.value || "");
   output.className = "result";
   output.textContent = JSON.stringify(result, null, 2);
+
   if (result.graph?.expression) {
     plotAnalysisOnDesmos(result);
     if (status) status.textContent = "Auto-plotted from Analyze.";
+  } else if (status) {
+    status.textContent = "No graphable expression found.";
   }
 }
 
@@ -367,15 +391,14 @@ function clearChatLog() {
 function summarizeForChat(analysis) {
   const roots = (analysis.key_points?.roots || []).map(formatPoint).filter(Boolean).join(", ");
   const vertex = formatPoint(analysis.key_points?.vertex);
-  const bits = [
+  return [
     `Type: ${analysis.type}.`,
     analysis.chat_summary || "",
     analysis.explanation_steps || "",
     roots ? `Roots: ${roots}.` : "",
     vertex ? `Vertex: ${vertex}.` : "",
     analysis.graph?.expression ? `Desmos expression: ${analysis.graph.expression}.` : ""
-  ].filter(Boolean);
-  return bits.join(" ");
+  ].filter(Boolean).join(" ");
 }
 
 async function fetchWolframResult(query) {
@@ -393,6 +416,7 @@ async function handleChatSend() {
   if (!inputEl) return;
   const text = inputEl.value.trim();
   if (!text) return;
+
   inputEl.value = "";
   appendChatMessage("user", text);
 
@@ -445,6 +469,7 @@ function handleDesmosPlot() {
   const input = byId("analysisInput");
   const status = byId("chatStatus");
   if (!input) return;
+
   const analysis = analyzeMathInput(input.value || "");
   if (!analysis.graph?.expression) {
     if (status) status.textContent = "No graphable expression found for this input.";
@@ -814,9 +839,7 @@ function explainResults() {
     const latest = ratios[ratios.length - 1];
     lines.push(`Fibonacci: the ratio Fn/Fn-1 is approaching 1.618. Current estimate: ${latest.toFixed(6)}.`);
   }
-  if (!lines.length) {
-    lines.push("No recent math result to explain yet. Run Quadratic Solve or Fibonacci Generate first.");
-  }
+  if (!lines.length) lines.push("No recent math result to explain yet. Run Quadratic Solve or Fibonacci Generate first.");
   out.className = "result";
   out.textContent = lines.join(" ");
 }
@@ -910,7 +933,7 @@ function setupEvents() {
   byId("desmosClear")?.addEventListener("click", () => state.desmosCalc?.setBlank());
 
   ["qa", "qb", "qc", "fibTerms", "calcInput", "challengeAnswer", "analysisInput", "chatInput"].forEach((id) => {
-    byId(id).addEventListener("keydown", (e) => {
+    byId(id)?.addEventListener("keydown", (e) => {
       if (e.key !== "Enter") return;
       if (id === "fibTerms") fibGenerate();
       else if (id === "calcInput") calcEvaluate();
