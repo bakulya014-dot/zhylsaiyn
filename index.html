@@ -2,7 +2,7 @@
    
 <!DOCTYPE html>
 <html lang="en">
-   <head>
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Math/Tech Portfolio - Bakytzhan</title>
@@ -20,7 +20,6 @@
 
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <nav class="nav">
     <div class="nav-inner">
@@ -39,37 +38,34 @@
 
   <div class="container">
     <section id="home" class="hero reveal">
-  <div>
-    <span class="pill">Math + Tech Portfolio</span>
-    <h1>Bakytzhan
-AI Research & Mathematical Systems Developer</h1>
-    <p class="tagline">
-      I build interactive math tools, data-driven apps, and creative visualizations.
-      My focus is turning complex ideas into intuitive experiences.
-    </p>
-
-    <img
-      src="https://media.istockphoto.com/id/898704212/photo/man-think-how-to-solve-the-problem.jpg?s=612x612&w=0&k=20&c=G0v9kQml0LfXqTp_U1hGTQxFODseWTqDJ-z29ENiaAQ="
-      alt="Math thinking concept"
-      class="hero-img"
-    />
-  </div>
-
-  <div class="hero-card">
-    ...
-  </div>
-</section>
-
+      <div>
+        <span class="pill">Math + Tech Portfolio</span>
+        <h1>Bakytzhan AI Research & Mathematical Systems Developer</h1>
+        <p class="tagline">
+          I build interactive math tools, data-driven apps, and creative visualizations.
+          My focus is turning complex ideas into intuitive experiences.
+        </p>
+        <img
+          src="https://media.istockphoto.com/id/898704212/photo/man-think-how-to-solve-the-problem.jpg?s=612x612&w=0&k=20&c=G0v9kQml0LfXqTp_U1hGTQxFODseWTqDJ-z29ENiaAQ="
+          alt="Math thinking concept"
+          class="hero-img"
+        />
+      </div>
+      <div class="hero-card">
+        <h3>Quick Profile</h3>
+        <p>Student developer, math enthusiast, frontend and Python builder.</p>
+      </div>
+    </section>
 
     <section id="projects" class="section reveal">
       <h2>Projects</h2>
       <div class="grid-3">
         <article class="card">
-         <img
-  src="https://jimmymaths.com/wp-content/uploads/2025/09/Screenshot-2025-09-13-141900.jpg"
-  alt="Quadratic Visualizer Screenshot"
-  class="project-img"
-/>
+          <img
+            src="https://jimmymaths.com/wp-content/uploads/2025/09/Screenshot-2025-09-13-141900.jpg"
+            alt="Quadratic Visualizer Screenshot"
+            class="project-img"
+          />
           <h3>Quadratic Visualizer</h3>
           <p>Solve and graph quadratic equations with real-time parameter updates.</p>
           <a class="link" href="https://github.com/bakulya014-dot" target="_blank" rel="noopener">GitHub</a>
@@ -89,49 +85,44 @@ AI Research & Mathematical Systems Developer</h1>
       </div>
     </section>
 
-  <section id="math" class="section reveal">
-  <h2>Interactive Math Lab</h2>
-  <p class="tagline">Use this section live during your event demo.</p>
+    <section id="math" class="section reveal">
+      <h2>Interactive Math Lab</h2>
+      <p class="tagline">Use this section live during your event demo.</p>
 
-  <div class="math-grid">
-    <article class="math-box">
-      <h3>Math AI Chat + Desmos</h3>
-      <p class="small">Chat with the math engine, then plot analyzed expressions in Desmos.</p>
+      <div class="math-grid">
+        <article class="math-box">
+          <h3>Math Analysis Engine (JSON)</h3>
+          <p class="small">Input example: f(x)=x^2-4x+3 or x^2-5x+6=0</p>
+          <label for="analysisInput">Math input</label>
+          <input id="analysisInput" type="text" placeholder="f(x)=x^2-4x+3" />
+          <div class="btn-row">
+            <button class="action" type="button" id="analysisRun">Analyze</button>
+          </div>
+          <div id="analysisJson" class="result" aria-live="polite" style="white-space: pre-wrap;">
+            Enter a math expression and press Analyze.
+          </div>
+        </article>
 
-      <div id="chatLog" class="chat-log" aria-live="polite"></div>
-      <label for="chatInput">Ask a math question</label>
-      <input id="chatInput" type="text" placeholder="Example: solve x^2-5x+6=0" />
-
-      <div class="btn-row">
-        <button class="action" type="button" id="chatSend">Send</button>
-        <button class="action" type="button" id="chatClear">Clear Chat</button>
-        <label class="small chat-opt">
-          <input id="useWolfram" type="checkbox" /> Use Wolfram (optional)
-        </label>
-      </div>
-
-      <div id="chatStatus" class="small">Wolfram works only if window.__WOLFRAM_APP_ID is set.</div>
-      <div id="desmosGraph" class="desmos-graph" aria-label="Desmos graph"></div>
-
-      <div class="btn-row">
-        <button class="action" type="button" id="desmosPlot">Plot From Analysis Input</button>
-        <button class="action" type="button" id="desmosClear">Clear Graph</button>
-      </div>
-    </article>
-  </div>
-</section>
-
-  <h3>Math Analysis Engine (JSON)</h3>
-  <p class="small">Input example: f(x)=x^2-4x+3 or x^2-5x+6=0</p>
-  <label for="analysisInput">Math input</label>
-  <input id="analysisInput" type="text" placeholder="f(x)=x^2-4x+3" />
-  <div class="btn-row">
-    <button class="action" type="button" id="analysisRun">Analyze</button>
-  </div>
-  <div id="analysisJson" class="result" aria-live="polite" style="white-space: pre-wrap;">
-    Enter a math expression and press Analyze.
-  </div>
-</article>
+        <article class="math-box">
+          <h3>Math AI Chat + Desmos</h3>
+          <p class="small">Chat with the math engine, then plot analyzed expressions in Desmos.</p>
+          <div id="chatLog" class="chat-log" aria-live="polite"></div>
+          <label for="chatInput">Ask a math question</label>
+          <input id="chatInput" type="text" placeholder="Example: solve x^2-5x+6=0" />
+          <div class="btn-row">
+            <button class="action" type="button" id="chatSend">Send</button>
+            <button class="action" type="button" id="chatClear">Clear Chat</button>
+            <label class="small chat-opt">
+              <input id="useWolfram" type="checkbox" /> Use Wolfram (optional)
+            </label>
+          </div>
+          <div id="chatStatus" class="small">Wolfram works only if window.__WOLFRAM_APP_ID is set.</div>
+          <div id="desmosGraph" class="desmos-graph" aria-label="Desmos graph"></div>
+          <div class="btn-row">
+            <button class="action" type="button" id="desmosPlot">Plot From Analysis Input</button>
+            <button class="action" type="button" id="desmosClear">Clear Graph</button>
+          </div>
+        </article>
 
         <article class="math-box">
           <h3>Quadratic Playground</h3>
@@ -214,7 +205,6 @@ AI Research & Mathematical Systems Developer</h1>
     <section id="ai-research" class="section reveal">
       <h2>AI Research Module</h2>
       <p class="tagline">Student performance prediction using simulated education data and regression models.</p>
-
       <div class="math-grid">
         <article class="math-box">
           <h3>Dataset</h3>
@@ -262,23 +252,13 @@ AI Research & Mathematical Systems Developer</h1>
     <footer>© 2026 Bakytzhan - Built for AI event demos with interactive math.</footer>
   </div>
 
-<script>
-  window.__AI_API_BASE = "https://ai-backend-kimep.onrender.com";
-</script>
-<script src="i18n.js"></script>
-<script src="app.js"></script>
+  <script>
+    window.__AI_API_BASE = "https://ai-backend-kimep.onrender.com";
+  </script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
 
 
