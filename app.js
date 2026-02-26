@@ -3,11 +3,16 @@ const state = {
   fibonacci: null,
   challenge: null,
   fibTimer: null,
-  modelInfo: null
+  modelInfo: null,
+  desmosCalc: null
 };
 
 const byId = (id) => document.getElementById(id);
-const API_BASE = window.__AI_API_BASE || "";
+const API_BASE =
+  window.__AI_API_BASE ||
+  (window.location.hostname.includes("github.io")
+    ? "https://YOUR-RENDER-SERVICE.onrender.com"
+    : "");
 
 function setupTheme() {
   const toggle = byId("themeToggle");
@@ -70,6 +75,418 @@ function formatNum(n) {
   return Number.isInteger(n) ? String(n) : n.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
 }
 
+function parseSignedNumber(raw) {
+  if (raw === "" || raw === "+") return 1;
+  if (raw === "-") return -1;
+  const n = Number(raw);
+  return Number.isNaN(n) ? null : n;
+}
+
+function parseQuadraticPolynomial(polyInput) {
+  const poly = polyInput.replace(/\s+/g, "").replace(/\*/g, "");
+  if (!poly) return null;
+  if (/[^0-9xX^+.\-]/.test(poly)) return null;
+  const terms = poly.match(/[+\-]?[^+\-]+/g);
+  if (!terms) return null;
+
+  let a = 0;
+  let b = 0;
+  let c = 0;
+
+  for (const rawTerm of terms) {
+    const term = rawTerm.replace(/X/g, "x");
+    if (!term) return null;
+    if (term.includes("x^")) {
+      if (!term.endsWith("x^2")) return null;
+      const coeffPart = term.slice(0, -3);
+      const coeff = parseSignedNumber(coeffPart);
+      if (coeff === null) return null;
+      a += coeff;
+      continue;
+    }
+    if (term.includes("x")) {
+      if (!term.endsWith("x")) return null;
+      const coeffPart = term.slice(0, -1);
+      const coeff = parseSignedNumber(coeffPart);
+      if (coeff === null) return null;
+      b += coeff;
+      continue;
+    }
+    const constant = Number(term);
+    if (Number.isNaN(constant)) return null;
+    c += constant;
+  }
+
+  return { a, b, c };
+}
+
+function formatLinear(b, c) {
+  const parts = [];
+  if (b !== 0) {
+    if (b === 1) parts.push("x");
+    else if (b === -1) parts.push("-x");
+    else parts.push(`${formatNum(b)}x`);
+  }
+  if (c !== 0) {
+    if (!parts.length) parts.push(formatNum(c));
+    else parts.push(`${c > 0 ? "+" : ""}${formatNum(c)}`);
+  }
+  return parts.length ? parts.join("") : "0";
+}
+
+function formatQuadratic(a, b, c) {
+  const parts = [];
+  if (a !== 0) {
+    if (a === 1) parts.push("x^2");
+    else if (a === -1) parts.push("-x^2");
+    else parts.push(`${formatNum(a)}x^2`);
+  }
+  if (b !== 0) {
+    const term = b === 1 ? "x" : b === -1 ? "-x" : `${formatNum(b)}x`;
+    if (!parts.length || term.startsWith("-")) parts.push(term);
+    else parts.push(`+${term}`);
+  }
+  if (c !== 0) {
+    const term = formatNum(c);
+    if (!parts.length || c < 0) parts.push(term);
+    else parts.push(`+${term}`);
+  }
+  return parts.length ? parts.join("") : "0";
+}
+
+function classifyMathInput(input) {
+  const clean = input.trim();
+  if (!clean) return "Other";
+  if (/\n/.test(clean) && /=/.test(clean)) return "System of equations";
+  if (/^(d\/dx|derivative)/i.test(clean)) return "Derivative";
+  if (/^(\u222B|integral)/i.test(clean)) return "Integral";
+  if (/[<>]=?|\u2264|\u2265/.test(clean)) return "Inequality";
+  if (/^\s*(f\(x\)|y)\s*=/.test(clean)) return "Function";
+  if (clean.includes("=")) return "Equation";
+  if (clean.includes("x")) return "Function";
+  return "Other";
+}
+
+function buildBaseResponse(type) {
+  return {
+    type,
+    analysis: {
+      domain: "",
+      range: "",
+      derivative: "",
+      symmetry: ""
+    },
+    key_points: {
+      roots: [],
+      vertex: [],
+      intersections: [],
+      critical_points: []
+    },
+    graph: {
+      expression: "",
+      highlight_points: []
+    },
+    explanation_steps: "",
+    chat_summary: ""
+  };
+}
+
+function analyzeQuadratic(a, b, c, sourceType) {
+  const response = buildBaseResponse(sourceType);
+  if (a === 0) {
+    const root = b === 0 ? null : -c / b;
+    response.analysis.domain = "All real numbers";
+    response.analysis.range = b === 0 ? `${formatNum(c)}` : "All real numbers";
+    response.analysis.derivative = formatNum(b);
+    response.analysis.symmetry = "None";
+    if (root !== null && Number.isFinite(root)) {
+      response.key_points.roots = [[root, 0]];
+    }
+    response.key_points.intersections = [[0, c], ...response.key_points.roots];
+    response.graph.expression = `y=${formatLinear(b, c)}`;
+    response.graph.highlight_points = response.key_points.intersections;
+    response.explanation_steps =
+      `1) Normalize to linear form y=${formatLinear(b, c)}. ` +
+      `2) Domain is all real numbers and slope is ${formatNum(b)}. ` +
+      `3) Solve bx+c=0 for root and mark y-intercept at (0, ${formatNum(c)}).`;
+    response.chat_summary = "This is a line (not a parabola), so there is no vertex.";
+    return response;
+  }
+
+  const d = b * b - 4 * a * c;
+  const vx = -b / (2 * a);
+  const vy = a * vx * vx + b * vx + c;
+  const derivative = formatLinear(2 * a, b);
+
+  response.analysis.domain = "All real numbers";
+  response.analysis.range = a > 0 ? `[${formatNum(vy)}, +infinity)` : `(-infinity, ${formatNum(vy)}]`;
+  response.analysis.derivative = derivative;
+  response.analysis.symmetry = `About line x=${formatNum(vx)}`;
+
+  if (d > 0) {
+    const r1 = (-b - Math.sqrt(d)) / (2 * a);
+    const r2 = (-b + Math.sqrt(d)) / (2 * a);
+    response.key_points.roots = [[r1, 0], [r2, 0]];
+  } else if (d === 0) {
+    const r = -b / (2 * a);
+    response.key_points.roots = [[r, 0]];
+  }
+
+  response.key_points.vertex = [vx, vy];
+  response.key_points.intersections = [[0, c], ...response.key_points.roots];
+  response.key_points.critical_points = [[vx, vy]];
+
+  response.graph.expression = `y=${formatQuadratic(a, b, c)}`;
+  response.graph.highlight_points = [
+    ...response.key_points.roots,
+    response.key_points.vertex,
+    [0, c]
+  ];
+
+  const extremaText =
+    a > 0
+      ? `Minimum value is ${formatNum(vy)} at x=${formatNum(vx)}.`
+      : `Maximum value is ${formatNum(vy)} at x=${formatNum(vx)}.`;
+  response.explanation_steps =
+    `1) Convert to standard form y=${formatQuadratic(a, b, c)}. ` +
+    `2) Compute D=b^2-4ac=${formatNum(d)} to classify roots. ` +
+    `3) Compute vertex (${formatNum(vx)}, ${formatNum(vy)}), axis x=${formatNum(vx)}, and derivative y'=${derivative}. ` +
+    `4) ${extremaText}`;
+  response.chat_summary = a > 0
+    ? "Parabola opens upward, so the vertex is the minimum point."
+    : "Parabola opens downward, so the vertex is the maximum point.";
+  return response;
+}
+
+function solveSingleVariableEquation(equation) {
+  const parts = equation.split("=");
+  if (parts.length !== 2) return null;
+  const left = parseQuadraticPolynomial(parts[0]);
+  const right = parseQuadraticPolynomial(parts[1]);
+  if (!left || !right) return null;
+  const a = left.a - right.a;
+  const b = left.b - right.b;
+  const c = left.c - right.c;
+  if (a !== 0 || b === 0) return null;
+  return -c / b;
+}
+
+function solveSimpleLinearSystem(lines) {
+  if (lines.length !== 2) return null;
+  const x1 = solveSingleVariableEquation(lines[0]);
+  const x2 = solveSingleVariableEquation(lines[1]);
+  if (x1 === null || x2 === null) return null;
+  if (Math.abs(x1 - x2) > 1e-9) return null;
+  return [x1, 0];
+}
+
+function analyzeMathInput(rawInput) {
+  const type = classifyMathInput(rawInput);
+  const response = buildBaseResponse(type);
+  const clean = rawInput.trim();
+
+  if (!clean) {
+    response.explanation_steps = "Provide a math input to analyze.";
+    response.chat_summary = "Enter a function, equation, inequality, derivative, or integral.";
+    return response;
+  }
+
+  if (type === "Function") {
+    const rhs = clean.replace(/^\s*(f\(x\)|y)\s*=/, "");
+    const parsed = parseQuadraticPolynomial(rhs);
+    if (parsed) return analyzeQuadratic(parsed.a, parsed.b, parsed.c, "Function");
+
+    response.analysis.domain = "Unable to determine automatically";
+    response.graph.expression = rhs ? `y=${rhs}` : "";
+    response.explanation_steps = "Detected as a function, but only quadratic-form extraction is implemented in this panel.";
+    response.chat_summary = "I recognized a function. For full structural analysis, use quadratic format ax^2+bx+c.";
+    return response;
+  }
+
+  if (type === "Equation") {
+    const parts = clean.split("=");
+    if (parts.length === 2) {
+      const left = parseQuadraticPolynomial(parts[0]);
+      const right = parseQuadraticPolynomial(parts[1]);
+      if (left && right) {
+        const a = left.a - right.a;
+        const b = left.b - right.b;
+        const c = left.c - right.c;
+        return analyzeQuadratic(a, b, c, "Equation");
+      }
+    }
+    response.explanation_steps = "Detected as an equation, but automatic solving currently supports quadratic polynomial equations.";
+    response.chat_summary = "Use format like x^2-5x+6=0 for full output.";
+    return response;
+  }
+
+  if (type === "Derivative") {
+    const target = clean.replace(/^(d\/dx|derivative)\s*/i, "").trim();
+    response.analysis.derivative = target ? `d/dx(${target})` : "Not provided";
+    response.graph.expression = target ? `y=${target}` : "";
+    response.explanation_steps =
+      "1) Input classified as derivative request. 2) Function target extracted for symbolic differentiation. 3) Apply derivative rules (power/product/chain) to the extracted target.";
+    response.chat_summary = "Derivative request recognized. Share the full function to get step-by-step differentiation.";
+    return response;
+  }
+
+  if (type === "Integral") {
+    response.explanation_steps =
+      "1) Input classified as integral request. 2) Identify integrand and optional bounds. 3) Apply antiderivative rules or numeric integration when needed.";
+    response.chat_summary = "Integral request recognized. Add bounds to compute a definite value.";
+    return response;
+  }
+
+  if (type === "System of equations") {
+    const lines = clean.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+    const solution = solveSimpleLinearSystem(lines);
+    response.explanation_steps =
+      "1) Input classified as a system of equations. 2) Equations are normalized to comparable form. 3) Solve for the intersection point when coefficients are solvable.";
+    if (solution) {
+      response.key_points.intersections = [solution];
+      response.graph.highlight_points = [solution];
+      response.chat_summary = `System solved with intersection at x=${formatNum(solution[0])}.`;
+    } else {
+      response.chat_summary = "System recognized, but this module currently solves only simple two-line forms.";
+    }
+    return response;
+  }
+
+  if (type === "Inequality") {
+    response.explanation_steps =
+      "1) Input classified as inequality. 2) Move all terms to one side. 3) Find critical boundaries and test intervals to determine the solution region.";
+    response.chat_summary = "Inequality recognized. This module returns structure and can be extended to interval output.";
+    return response;
+  }
+
+  response.explanation_steps = "Input type not recognized.";
+  response.chat_summary = "Try forms like f(x)=x^2-4x+3 or x^2-5x+6=0.";
+  return response;
+}
+
+function runMathAnalysisEngine() {
+  const input = byId("analysisInput");
+  const output = byId("analysisJson");
+  if (!input || !output) return;
+  const result = analyzeMathInput(input.value || "");
+  output.className = "result";
+  output.textContent = JSON.stringify(result, null, 2);
+}
+
+function formatPoint(point) {
+  if (!Array.isArray(point) || point.length !== 2) return "";
+  return `(${formatNum(point[0])}, ${formatNum(point[1])})`;
+}
+
+function appendChatMessage(role, text) {
+  const log = byId("chatLog");
+  if (!log) return;
+  const msg = document.createElement("div");
+  msg.className = `chat-msg ${role}`;
+  msg.textContent = text;
+  log.appendChild(msg);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearChatLog() {
+  const log = byId("chatLog");
+  if (!log) return;
+  log.innerHTML = "";
+  appendChatMessage("ai", "Ready. Ask me any function, equation, inequality, derivative, or integral.");
+}
+
+function summarizeForChat(analysis) {
+  const roots = (analysis.key_points?.roots || []).map(formatPoint).filter(Boolean).join(", ");
+  const vertex = formatPoint(analysis.key_points?.vertex);
+  const bits = [
+    `Type: ${analysis.type}.`,
+    analysis.chat_summary || "",
+    analysis.explanation_steps || "",
+    roots ? `Roots: ${roots}.` : "",
+    vertex ? `Vertex: ${vertex}.` : "",
+    analysis.graph?.expression ? `Desmos expression: ${analysis.graph.expression}.` : ""
+  ].filter(Boolean);
+  return bits.join(" ");
+}
+
+async function fetchWolframResult(query) {
+  const appId = window.__WOLFRAM_APP_ID || "";
+  if (!appId) return null;
+  const url = `https://api.wolframalpha.com/v1/result?appid=${encodeURIComponent(appId)}&i=${encodeURIComponent(query)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Wolfram HTTP ${res.status}`);
+  const text = await res.text();
+  return text.trim();
+}
+
+async function handleChatSend() {
+  const inputEl = byId("chatInput");
+  const status = byId("chatStatus");
+  if (!inputEl) return;
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = "";
+  appendChatMessage("user", text);
+
+  const analysis = analyzeMathInput(text);
+  appendChatMessage("ai", summarizeForChat(analysis));
+  if (status) status.textContent = "Local analysis complete.";
+
+  const useWolfram = byId("useWolfram")?.checked;
+  if (!useWolfram) return;
+  try {
+    if (status) status.textContent = "Querying Wolfram...";
+    const wa = await fetchWolframResult(text);
+    if (wa) {
+      appendChatMessage("ai", `Wolfram: ${wa}`);
+      if (status) status.textContent = "Wolfram response received.";
+    } else if (status) {
+      status.textContent = "Wolfram disabled (set window.__WOLFRAM_APP_ID).";
+    }
+  } catch (err) {
+    if (status) status.textContent = `Wolfram failed: ${err.message}`;
+  }
+}
+
+function initDesmos() {
+  const el = byId("desmosGraph");
+  if (!el || !window.Desmos) return;
+  state.desmosCalc = Desmos.GraphingCalculator(el, {
+    expressions: true,
+    settingsMenu: false,
+    zoomButtons: true
+  });
+}
+
+function plotAnalysisOnDesmos(analysis) {
+  if (!state.desmosCalc || !analysis?.graph?.expression) return;
+  const calc = state.desmosCalc;
+  calc.setBlank();
+  calc.setExpression({ id: "expr", latex: analysis.graph.expression });
+  (analysis.graph.highlight_points || []).forEach((p, i) => {
+    if (!Array.isArray(p) || p.length !== 2) return;
+    calc.setExpression({
+      id: `pt${i}`,
+      latex: `(${p[0]},${p[1]})`,
+      label: `P${i + 1}`,
+      showLabel: true
+    });
+  });
+}
+
+function handleDesmosPlot() {
+  const input = byId("analysisInput");
+  const status = byId("chatStatus");
+  if (!input) return;
+  const analysis = analyzeMathInput(input.value || "");
+  if (!analysis.graph?.expression) {
+    if (status) status.textContent = "No graphable expression found for this input.";
+    return;
+  }
+  plotAnalysisOnDesmos(analysis);
+  if (status) status.textContent = "Plotted on Desmos.";
+}
+
 function solveQuadratic() {
   const a = Number(byId("qa").value);
   const b = Number(byId("qb").value);
@@ -91,6 +508,7 @@ function solveQuadratic() {
   const d = b * b - 4 * a * c;
   const vertexX = -b / (2 * a);
   const vertexY = a * vertexX * vertexX + b * vertexX + c;
+  let summary = `Discriminant: ${formatNum(d)}. `;
   let rootsText = "";
   if (d > 0) {
     const r1 = (-b + Math.sqrt(d)) / (2 * a);
@@ -103,9 +521,9 @@ function solveQuadratic() {
     rootsText = "No real roots (complex roots).";
   }
   result.className = "result";
-  result.textContent = `Discriminant: ${formatNum(d)}. ${rootsText} Vertex: (${formatNum(vertexX)}, ${formatNum(vertexY)}).`;
+  result.textContent = `${summary}${rootsText} Vertex: (${formatNum(vertexX)}, ${formatNum(vertexY)}).`;
 
-  state.quadratic = { a, b, c, d, vertexX, vertexY };
+  state.quadratic = { a, b, c, d, vertexX, vertexY, result: result.textContent };
   drawQuadraticGraph(a, b, c);
 }
 
@@ -487,6 +905,57 @@ function checkChallenge() {
   }
 }
 
+function setupEvents() {
+  pairInputAndRange("qa", "qaRange", solveQuadratic);
+  pairInputAndRange("qb", "qbRange", solveQuadratic);
+  pairInputAndRange("qc", "qcRange", solveQuadratic);
+
+  byId("quadSolve").addEventListener("click", solveQuadratic);
+  byId("quadExample").addEventListener("click", quadraticExample);
+  byId("quadReset").addEventListener("click", quadraticReset);
+
+  byId("fibGenerate").addEventListener("click", fibGenerate);
+  byId("fibNext").addEventListener("click", fibNextStep);
+  byId("fibPlay").addEventListener("click", fibAutoPlay);
+  byId("fibReset").addEventListener("click", fibReset);
+
+  document.querySelectorAll("[data-calc]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      byId("calcInput").value += btn.dataset.calc;
+      byId("calcInput").focus();
+    });
+  });
+  byId("calcClear").addEventListener("click", () => byId("calcInput").value = "");
+  byId("calcBack").addEventListener("click", () => {
+    const i = byId("calcInput");
+    i.value = i.value.slice(0, -1);
+    i.focus();
+  });
+  byId("calcEquals").addEventListener("click", calcEvaluate);
+
+  byId("explainNow").addEventListener("click", explainResults);
+  byId("challengeNew").addEventListener("click", newChallenge);
+  byId("challengeCheck").addEventListener("click", checkChallenge);
+  byId("aiPredictBtn").addEventListener("click", predictAIScore);
+  byId("analysisRun").addEventListener("click", runMathAnalysisEngine);
+  byId("chatSend")?.addEventListener("click", handleChatSend);
+  byId("chatClear")?.addEventListener("click", clearChatLog);
+  byId("desmosPlot")?.addEventListener("click", handleDesmosPlot);
+  byId("desmosClear")?.addEventListener("click", () => state.desmosCalc?.setBlank());
+
+  ["qa", "qb", "qc", "fibTerms", "calcInput", "challengeAnswer", "analysisInput", "chatInput"].forEach((id) => {
+    byId(id).addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      if (id === "fibTerms") fibGenerate();
+      else if (id === "calcInput") calcEvaluate();
+      else if (id === "challengeAnswer") checkChallenge();
+      else if (id === "analysisInput") runMathAnalysisEngine();
+      else if (id === "chatInput") handleChatSend();
+      else solveQuadratic();
+    });
+  });
+}
+
 function setModelTableRows(models) {
   const tbody = document.querySelector("#modelTable tbody");
   if (!tbody) return;
@@ -565,9 +1034,11 @@ async function loadAIModelInfo() {
     plotFeatureImportance(info);
   } catch (err) {
     note.className = "result warn";
-    note.textContent = "Could not load Flask API data. Check backend URL and status.";
+    note.textContent = "Could not load Flask API data. Start backend: python ai_backend/app.py";
     const tbody = document.querySelector("#modelTable tbody");
-    if (tbody) tbody.innerHTML = "<tr><td colspan='5'>Backend not available.</td></tr>";
+    if (tbody) {
+      tbody.innerHTML = "<tr><td colspan='5'>Backend not available.</td></tr>";
+    }
   }
 }
 
@@ -589,354 +1060,30 @@ async function predictAIScore() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || `HTTP ${res.status}`);
+    }
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
     out.className = "result";
     out.textContent = `Predicted FinalScore: ${data.predicted_score}. ${data.explanation}`;
   } catch (err) {
     out.className = "result danger";
-    out.textContent = `Prediction failed: ${err.message}`;
+    out.textContent = `Prediction failed: ${err.message}. Start backend and retry.`;
   }
 }
-function classifyMathInput(input) {
-  const clean = (input || "").trim();
-  if (!clean) return "Other";
-  if (/\n/.test(clean) && /=/.test(clean)) return "System of equations";
-  if (/^(d\/dx|derivative)/i.test(clean)) return "Derivative";
-  if (/^(∫|integral)/i.test(clean)) return "Integral";
-  if (/[<>]=?|≤|≥/.test(clean)) return "Inequality";
-  if (/^\s*(f\(x\)|y)\s*=/.test(clean)) return "Function";
-  if (clean.includes("=")) return "Equation";
-  if (clean.includes("x")) return "Function";
-  return "Other";
-}
-
-function buildBaseResponse(type) {
-  return {
-    type,
-    analysis: {
-      domain: "",
-      range: "",
-      derivative: "",
-      symmetry: ""
-    },
-    key_points: {
-      roots: [],
-      vertex: [],
-      intersections: [],
-      critical_points: []
-    },
-    graph: {
-      expression: "",
-      highlight_points: []
-    },
-    explanation_steps: "",
-    chat_summary: ""
-  };
-}
-
-function parseQuadraticExpr(expr) {
-  const s = expr.replace(/\s+/g, "").replace(/\*/g, "");
-  const terms = s.match(/[+\-]?[^+\-]+/g);
-  if (!terms) return null;
-
-  let a = 0;
-  let b = 0;
-  let c = 0;
-
-  for (const t0 of terms) {
-    const t = t0.replace(/X/g, "x");
-    if (t.includes("x^2")) {
-      const k = t.replace("x^2", "");
-      const v = k === "" || k === "+" ? 1 : k === "-" ? -1 : Number(k);
-      if (Number.isNaN(v)) return null;
-      a += v;
-    } else if (t.includes("x")) {
-      const k = t.replace("x", "");
-      const v = k === "" || k === "+" ? 1 : k === "-" ? -1 : Number(k);
-      if (Number.isNaN(v)) return null;
-      b += v;
-    } else {
-      const v = Number(t);
-      if (Number.isNaN(v)) return null;
-      c += v;
-    }
-  }
-
-  return { a, b, c };
-}
-
-function classifyMathInput(input) {
-  const clean = (input || "").trim();
-  if (!clean) return "Other";
-  if (/\n/.test(clean) && /=/.test(clean)) return "System of equations";
-  if (/^(d\/dx|derivative)/i.test(clean)) return "Derivative";
-  if (/^(∫|integral)/i.test(clean)) return "Integral";
-  if (/[<>]=?|≤|≥/.test(clean)) return "Inequality";
-  if (/^\s*(f\(x\)|y)\s*=/.test(clean)) return "Function";
-  if (clean.includes("=")) return "Equation";
-  return "Other";
-}
-
-function buildBaseResponse(type) {
-  return {
-    type,
-    analysis: {
-      domain: "",
-      range: "",
-      derivative: "",
-      symmetry: ""
-    },
-    key_points: {
-      roots: [],
-      vertex: [],
-      intersections: [],
-      critical_points: []
-    },
-    graph: {
-      expression: "",
-      highlight_points: []
-    },
-    explanation_steps: "",
-    chat_summary: ""
-  };
-}
-
-function parseQuadraticExpr(expr) {
-  const s = expr.replace(/\s+/g, "").replace(/\*/g, "");
-  const terms = s.match(/[+\-]?[^+\-]+/g);
-  if (!terms) return null;
-
-  let a = 0, b = 0, c = 0;
-  for (const t0 of terms) {
-    const t = t0.replace(/X/g, "x");
-    if (t.includes("x^2")) {
-      const k = t.replace("x^2", "");
-      const v = k === "" || k === "+" ? 1 : k === "-" ? -1 : Number(k);
-      if (Number.isNaN(v)) return null;
-      a += v;
-    } else if (t.includes("x")) {
-      const k = t.replace("x", "");
-      const v = k === "" || k === "+" ? 1 : k === "-" ? -1 : Number(k);
-      if (Number.isNaN(v)) return null;
-      b += v;
-    } else {
-      const v = Number(t);
-      if (Number.isNaN(v)) return null;
-      c += v;
-    }
-  }
-  return { a, b, c };
-}
-
-function solveSingleVariableEquation(eq) {
-  const parts = eq.split("=");
-  if (parts.length !== 2) return null;
-  const L = parseQuadraticExpr(parts[0]);
-  const R = parseQuadraticExpr(parts[1]);
-  if (!L || !R) return null;
-  const a = L.a - R.a;
-  const b = L.b - R.b;
-  const c = L.c - R.c;
-  if (a !== 0 || b === 0) return null; // linear only
-  return -c / b;
-}
-
-function analyzeMathInput(rawInput) {
-  const input = (rawInput || "").trim();
-  const type = classifyMathInput(input);
-
-  if (!input) {
-    const out = buildBaseResponse("Other");
-    out.explanation_steps = "Please provide a mathematical input.";
-    out.chat_summary = "Try: f(x)=x^2-4x+3 or x^2-5x+6=0";
-    return out;
-  }
-
-  const out = buildBaseResponse(type);
-
-  if (type === "Function" || type === "Equation") {
-    let expr = "";
-
-    if (type === "Function") {
-      expr = input.replace(/^\s*(f\(x\)|y)\s*=/, "");
-    } else {
-      const parts = input.split("=");
-      if (parts.length !== 2) {
-        out.explanation_steps = "Equation format is invalid.";
-        out.chat_summary = "Use format like x^2-5x+6=0";
-        return out;
-      }
-      expr = `(${parts[0]})-(${parts[1]})`;
-      if (parts[1].trim() === "0") expr = parts[0];
-    }
-
-    const q = parseQuadraticExpr(expr);
-    if (!q) {
-      out.explanation_steps = "Recognized input, but parser currently supports quadratic polynomial form.";
-      out.chat_summary = "Rewrite into ax^2+bx+c form.";
-      out.graph.expression = type === "Function" ? `y=${expr}` : "";
-      return out;
-    }
-
-    const { a, b, c } = q;
-
-    if (a === 0) {
-      out.analysis.domain = "All real numbers";
-      out.analysis.range = b === 0 ? `${formatNum(c)}` : "All real numbers";
-      out.analysis.derivative = `${formatNum(b)}`;
-      out.analysis.symmetry = "None";
-      out.graph.expression = `y=${formatNum(b)}x${c >= 0 ? "+" : ""}${formatNum(c)}`;
-      if (b !== 0) out.key_points.roots = [[-c / b, 0]];
-      out.key_points.intersections = [[0, c], ...out.key_points.roots];
-      out.graph.highlight_points = out.key_points.intersections;
-      out.explanation_steps = "1) Simplify to linear form. 2) Find root/intercepts. 3) Build graph expression.";
-      out.chat_summary = "This is a line (not a parabola).";
-      return out;
-    }
-
-    const d = b * b - 4 * a * c;
-    const vx = -b / (2 * a);
-    const vy = a * vx * vx + b * vx + c;
-
-    out.analysis.domain = "All real numbers";
-    out.analysis.range = a > 0 ? `[${formatNum(vy)}, +infinity)` : `(-infinity, ${formatNum(vy)}]`;
-    out.analysis.derivative = `${formatNum(2 * a)}x${b >= 0 ? "+" : ""}${formatNum(b)}`;
-    out.analysis.symmetry = `About line x=${formatNum(vx)}`;
-
-    if (d > 0) {
-      const r1 = (-b - Math.sqrt(d)) / (2 * a);
-      const r2 = (-b + Math.sqrt(d)) / (2 * a);
-      out.key_points.roots = [[r1, 0], [r2, 0]];
-    } else if (d === 0) {
-      const r = -b / (2 * a);
-      out.key_points.roots = [[r, 0]];
-    }
-
-    out.key_points.vertex = [vx, vy];
-    out.key_points.intersections = [[0, c], ...out.key_points.roots];
-    out.key_points.critical_points = [[vx, vy]];
-    out.graph.expression = `y=${formatNum(a)}x^2${b >= 0 ? "+" : ""}${formatNum(b)}x${c >= 0 ? "+" : ""}${formatNum(c)}`;
-    out.graph.highlight_points = [...out.key_points.roots, [vx, vy], [0, c]];
-    out.explanation_steps = `1) Identify a=${formatNum(a)}, b=${formatNum(b)}, c=${formatNum(c)}. 2) Compute D=b^2-4ac=${formatNum(d)}. 3) Find roots and vertex. 4) Build graph expression.`;
-    out.chat_summary = a > 0
-      ? "Parabola opens upward (minimum at vertex)."
-      : "Parabola opens downward (maximum at vertex).";
-    return out;
-  }
-
-  if (type === "System of equations") {
-    const lines = input.split(/\n+/).map((s) => s.trim()).filter(Boolean);
-    if (lines.length === 2) {
-      const x1 = solveSingleVariableEquation(lines[0]);
-      const x2 = solveSingleVariableEquation(lines[1]);
-      if (x1 !== null && x2 !== null && Math.abs(x1 - x2) < 1e-9) {
-        out.key_points.intersections = [[x1, 0]];
-        out.graph.highlight_points = [[x1, 0]];
-        out.explanation_steps = "1) Solve each equation for x. 2) Match solutions. 3) Mark common point.";
-        out.chat_summary = `System solved at x=${formatNum(x1)}.`;
-        return out;
-      }
-    }
-    out.explanation_steps = "System recognized; current solver supports simple linear equations in x.";
-    out.chat_summary = "Provide two linear equations (single variable x).";
-    return out;
-  }
-
-  if (type === "Inequality") {
-    out.graph.expression = input;
-    out.explanation_steps = "1) Move terms to one side. 2) Find boundary values. 3) Test intervals.";
-    out.chat_summary = "Inequality recognized.";
-    return out;
-  }
-
-  if (type === "Derivative") {
-    const target = input.replace(/^(d\/dx|derivative)\s*/i, "").trim();
-    out.analysis.derivative = target ? `d/dx(${target})` : "Not provided";
-    out.graph.expression = target ? `y=${target}` : "";
-    out.explanation_steps = "1) Detect derivative request. 2) Extract target function. 3) Apply derivative rules.";
-    out.chat_summary = "Derivative mode detected.";
-    return out;
-  }
-
-  if (type === "Integral") {
-    out.explanation_steps = "1) Detect integral request. 2) Identify integrand/bounds. 3) Apply integration rules.";
-    out.chat_summary = "Integral mode detected.";
-    return out;
-  }
-
-  out.explanation_steps = "Input type recognized as Other.";
-  out.chat_summary = "Use function/equation/system/inequality/derivative/integral format.";
-  return out;
-}
-
-function runMathAnalysisEngine() {
-  const input = byId("analysisInput");
-  const output = byId("analysisJson");
-  if (!input || !output) return;
-  const result = analyzeMathInput(input.value);
-  output.className = "result";
-  output.textContent = JSON.stringify(result, null, 2);
-}
-
-function setupEvents() {
-  byId("analysisRun").addEventListener("click", runMathAnalysisEngine);
-
-  pairInputAndRange("qa", "qaRange", solveQuadratic);
-  pairInputAndRange("qb", "qbRange", solveQuadratic);
-  pairInputAndRange("qc", "qcRange", solveQuadratic);
-
-  byId("quadSolve").addEventListener("click", solveQuadratic);
-  byId("quadExample").addEventListener("click", quadraticExample);
-  byId("quadReset").addEventListener("click", quadraticReset);
-
-  byId("fibGenerate").addEventListener("click", fibGenerate);
-  byId("fibNext").addEventListener("click", fibNextStep);
-  byId("fibPlay").addEventListener("click", fibAutoPlay);
-  byId("fibReset").addEventListener("click", fibReset);
-
-  document.querySelectorAll("[data-calc]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      byId("calcInput").value += btn.dataset.calc;
-      byId("calcInput").focus();
-    });
-  });
-
-  byId("calcClear").addEventListener("click", () => byId("calcInput").value = "");
-  byId("calcBack").addEventListener("click", () => {
-    const i = byId("calcInput");
-    i.value = i.value.slice(0, -1);
-    i.focus();
-  });
-  byId("calcEquals").addEventListener("click", calcEvaluate);
-
-  byId("explainNow").addEventListener("click", explainResults);
-  byId("challengeNew").addEventListener("click", newChallenge);
-  byId("challengeCheck").addEventListener("click", checkChallenge);
-  byId("aiPredictBtn").addEventListener("click", predictAIScore);
-
-  ["qa", "qb", "qc", "fibTerms", "calcInput", "challengeAnswer", "analysisInput"].forEach((id) => {
-    byId(id).addEventListener("keydown", (e) => {
-      if (e.key !== "Enter") return;
-      if (id === "fibTerms") fibGenerate();
-      else if (id === "calcInput") calcEvaluate();
-      else if (id === "challengeAnswer") checkChallenge();
-      else if (id === "analysisInput") runMathAnalysisEngine();
-      else solveQuadratic();
-    });
-  });
-}
-
 
 function init() {
   setupTheme();
   setupPresentationMode();
   setupReveal();
+  initDesmos();
   setupEvents();
   loadAIModelInfo();
   quadraticReset();
   fibReset();
   drawFibChart([]);
+  clearChatLog();
 }
 
 init();
