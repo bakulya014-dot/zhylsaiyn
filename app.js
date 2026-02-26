@@ -251,6 +251,8 @@ function solveSimpleLinearSystem(lines) {
 }
 
 function analyzeMathInput(rawInput) {
+  const cleanedInput = input.replace(/^\s*solve\s+/i, "");
+
   const type = classifyMathInput(rawInput);
   const out = buildBaseResponse(type);
   const clean = (rawInput || "").trim();
