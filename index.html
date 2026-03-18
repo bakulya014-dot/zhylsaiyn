@@ -3,15 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ZhylysAIyn | AI + Blockchain Hackathon Portfolio</title>
+  <title>ZhylysAIyn | AI Math Tutor for Hackathon 5.0</title>
   <meta
     name="description"
-    content="Bakytzhan's hackathon portfolio for AI and blockchain: interactive math tools, AI learning analytics, and verifiable on-chain learning credentials."
+    content="AI-powered math tutor with Gemini, step-by-step solving, mistake detection, function graphing, and a polished startup-style interface."
   >
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]]
+      },
+      svg: {
+        fontCache: "global"
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
   <div class="page-shell">
@@ -19,6 +31,7 @@
       <a class="brand" href="#top">ZhylysAIyn</a>
       <nav class="site-nav">
         <a href="#projects">Projects</a>
+        <a href="#tutor">AI Tutor</a>
         <a href="#lab">Live Lab</a>
         <a href="#chain">Blockchain</a>
         <a href="#contact">Contact</a>
@@ -30,47 +43,47 @@
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">5.0 Hackathon / AI + Blockchain</p>
-          <h1>Building trustable learning products with math, AI, and verifiable data.</h1>
+          <h1>AI-powered math tutoring with explanations, graphing, and trustable learning records.</h1>
           <p class="hero-text">
-            I am Bakytzhan, a student developer turning mathematical thinking into interactive products.
-            This concept evolves my portfolio into a hackathon-ready platform: AI-powered learning insights,
-            on-chain achievement records, and visual demos that explain the product in real time.
+            This product evolves the original portfolio into a startup-style AI Math Tutor Web App. It can solve
+            step by step, explain concepts clearly, detect mistakes in student solutions, visualize functions,
+            and anchor milestones in a blockchain-inspired credential layer.
           </p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#lab">Open Live Demo</a>
-            <a class="button button-secondary" href="#projects">See Concept Stack</a>
+            <a class="button button-primary" href="#tutor">Launch AI Tutor</a>
+            <a class="button button-secondary" href="#projects">See Product Story</a>
           </div>
         </div>
         <div class="hero-panel">
           <div class="panel-grid">
             <article class="signal-card">
               <span class="signal-label">Core Theme</span>
-              <strong>AI x Blockchain for Education</strong>
-              <p>Use machine intelligence for guidance and blockchain for proof.</p>
+              <strong>AI Tutor for Math Learning</strong>
+              <p>Real Gemini responses with step-by-step guidance and concept-focused explanations.</p>
             </article>
             <article class="signal-card">
-              <span class="signal-label">Flagship Idea</span>
-              <strong>Learning Credential Ledger</strong>
-              <p>Scores, badges, and milestones become portable records students can verify anywhere.</p>
+              <span class="signal-label">Flagship Flow</span>
+              <strong>Solve, Check, Visualize</strong>
+              <p>Students can ask for help, verify their own work, and see a function instantly on a graph.</p>
             </article>
             <article class="signal-card">
-              <span class="signal-label">Demo Strategy</span>
-              <strong>Explainable Visual Interactions</strong>
-              <p>Graphs, predictions, and chain entries all update live so judges can understand the logic instantly.</p>
+              <span class="signal-label">Trust Layer</span>
+              <strong>Credential Ledger</strong>
+              <p>Key learning achievements can be written into a tamper-evident record for demo impact.</p>
             </article>
           </div>
           <div class="hero-metrics">
             <div>
-              <span class="metric-value" data-count="3">0</span>
-              <span class="metric-label">Integrated demos</span>
+              <span class="metric-value" data-count="4">0</span>
+              <span class="metric-label">Product modules</span>
             </div>
             <div>
-              <span class="metric-value" data-count="2">0</span>
-              <span class="metric-label">Tech layers</span>
+              <span class="metric-value" data-count="3">0</span>
+              <span class="metric-label">AI smart modes</span>
             </div>
             <div>
               <span class="metric-value" data-count="100">0</span>
-              <span class="metric-label">Pitch clarity</span>
+              <span class="metric-label">Demo readiness</span>
             </div>
           </div>
         </div>
@@ -78,42 +91,42 @@
 
       <section class="section" id="projects">
         <div class="section-heading">
-          <p class="eyebrow">Concept Stack</p>
-          <h2>Three connected stories instead of isolated portfolio cards.</h2>
+          <p class="eyebrow">Product Story</p>
+          <h2>A hackathon product instead of a static portfolio.</h2>
           <p>
-            The original site already had strong math and AI ingredients. This version frames them as one product ecosystem
-            for a hackathon audience: learn, predict, and verify.
+            The original math and AI strengths are still here, but now they are presented as one clear startup concept:
+            an AI tutor that teaches, checks, visualizes, and proves learning progress.
           </p>
         </div>
         <div class="card-grid">
           <article class="project-card accent-coral">
-            <p class="project-tag">Interactive Math Engine</p>
-            <h3>Quadratic Visualizer</h3>
-            <p>Transforms equations into explainable graphs, roots, and learning feedback for students in real time.</p>
+            <p class="project-tag">AI Tutoring</p>
+            <h3>Step-by-Step Solver</h3>
+            <p>Users ask a question, Gemini explains the method, breaks the work into steps, and gives the final answer clearly.</p>
             <ul class="card-list">
-              <li>Live graph rendering</li>
-              <li>Equation insight generation</li>
-              <li>Strong demo-friendly visuals</li>
+              <li>Real AI chat flow</li>
+              <li>Concept explanation modes</li>
+              <li>MathJax rendering for formulas</li>
             </ul>
           </article>
           <article class="project-card accent-gold">
-            <p class="project-tag">AI Learning Analytics</p>
-            <h3>Mastery Predictor</h3>
-            <p>Estimates student performance from study behavior and turns raw inputs into understandable confidence signals.</p>
+            <p class="project-tag">Learning Feedback</p>
+            <h3>Check My Solution</h3>
+            <p>Students paste their own method and the tutor detects mistakes, explains why, and shows a correct approach.</p>
             <ul class="card-list">
-              <li>Explainable score prediction</li>
-              <li>Behavior-to-outcome mapping</li>
-              <li>Supports adaptive recommendations</li>
+              <li>Error detection</li>
+              <li>Supportive explanations</li>
+              <li>Useful for self-learning</li>
             </ul>
           </article>
           <article class="project-card accent-teal">
-            <p class="project-tag">Blockchain Layer</p>
-            <h3>Credential Ledger</h3>
-            <p>Writes important learning milestones into a tamper-evident chain so certificates and badges are portable and verifiable.</p>
+            <p class="project-tag">Visualization + Trust</p>
+            <h3>Function Grapher + Ledger</h3>
+            <p>Math becomes visual, while important learning milestones can be preserved in a chain-style record.</p>
             <ul class="card-list">
-              <li>Student achievement wallet concept</li>
-              <li>Hash-linked record simulation</li>
-              <li>Trust layer for education apps</li>
+              <li>Function graph visualization</li>
+              <li>Interactive coefficient demos</li>
+              <li>Blockchain-inspired achievement tracking</li>
             </ul>
           </article>
         </div>
@@ -122,20 +135,89 @@
       <section class="section split-section">
         <div class="section-heading">
           <p class="eyebrow">Why It Fits</p>
-          <h2>A stronger hackathon narrative.</h2>
+          <h2>Clear, judge-friendly narrative.</h2>
         </div>
         <div class="narrative-grid">
           <article class="narrative-card">
             <span>Problem</span>
-            <p>Learning platforms can predict performance, but students still lack trusted ownership over results and credentials.</p>
+            <p>Students often get answers without understanding the reasoning, and they struggle to know where their own method went wrong.</p>
           </article>
           <article class="narrative-card">
             <span>Solution</span>
-            <p>Combine AI for guidance with blockchain for record integrity, making insights useful and achievements portable.</p>
+            <p>An AI tutor explains, checks, and visualizes math in one interface, making learning interactive instead of passive.</p>
           </article>
           <article class="narrative-card">
             <span>Pitch</span>
-            <p>“We do not just show a graph. We turn study behavior into evidence, then anchor that evidence in a transparent system.”</p>
+            <p>"We turn math help into a product students can actually learn from, not just copy from."</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="tutor" data-topic="quadratic equations">
+        <div class="section-heading">
+          <p class="eyebrow">AI Tutor</p>
+          <h2>Gemini-powered math tutor with context-aware prompting.</h2>
+          <p>
+            This tutor is aware that the current learning topic is <strong>quadratic equations</strong>. Change the topic label later
+            if you create other lesson pages. Enter your Gemini API key in the field below for live responses.
+          </p>
+        </div>
+
+        <div class="tutor-layout">
+          <article class="tutor-sidebar">
+            <div class="sidebar-card">
+              <h3>Configuration</h3>
+              <label class="stacked-field">
+                <span>Gemini API key</span>
+                <input id="apiKeyInput" type="password" placeholder="YOUR_API_KEY">
+              </label>
+              <p class="input-note">This direct frontend setup is fine for demos, but production should protect the key behind a backend.</p>
+            </div>
+
+            <div class="sidebar-card">
+              <h3>Smart Modes</h3>
+              <div class="mode-pill-group" id="modePills">
+                <button class="mode-pill is-active" type="button" data-mode="explain">Explain simply</button>
+                <button class="mode-pill" type="button" data-mode="fast">Solve fast</button>
+                <button class="mode-pill" type="button" data-mode="check">Check answer</button>
+              </div>
+              <button class="button button-secondary full-width" id="checkSolutionButton" type="button">Check my solution</button>
+            </div>
+
+            <div class="sidebar-card">
+              <h3>Try This</h3>
+              <div class="example-list">
+                <button class="example-chip" type="button" data-example="Solve x^2 - 5x + 6 = 0 step by step.">Quadratic roots</button>
+                <button class="example-chip" type="button" data-example="Explain simply why the discriminant matters in quadratic equations.">Discriminant</button>
+                <button class="example-chip" type="button" data-example="Check my solution: I solved x^2 - 4 = 0 and got x = 4 only. Explain my mistake.">Check mistake</button>
+                <button class="example-chip" type="button" data-example="Graph y=x^2+5x+6 and explain the intercepts and vertex.">Graph function</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="tutor-chat-card">
+            <div class="chat-header">
+              <div>
+                <p class="eyebrow">Live Tutor</p>
+                <h3>AI Math Tutor</h3>
+              </div>
+              <span class="context-chip" id="topicChip">Topic: Quadratic equations</span>
+            </div>
+
+            <div class="chat-feed" id="chatFeed" aria-live="polite"></div>
+
+            <form class="chat-form" id="chatForm">
+              <label class="chat-label" for="userPrompt">Ask a math question</label>
+              <textarea
+                id="userPrompt"
+                rows="5"
+                placeholder="Ask for a step-by-step solution, concept explanation, or paste your work to check it."
+              ></textarea>
+              <div class="chat-actions">
+                <button class="button button-primary" type="submit" id="sendPromptButton">Send to Gemini</button>
+                <button class="button button-secondary" type="button" id="clearChatButton">Clear chat</button>
+              </div>
+            </form>
           </article>
         </div>
       </section>
@@ -143,8 +225,8 @@
       <section class="section" id="lab">
         <div class="section-heading">
           <p class="eyebrow">Live Lab</p>
-          <h2>Interactive demo for judges.</h2>
-          <p>These modules are tuned for live explanation: one visual model, one AI model, and one blockchain simulation.</p>
+          <h2>Interactive demos for explanation and graphing.</h2>
+          <p>These modules support the tutor product: a quadratic visualizer, a simple AI predictor, and a general function grapher.</p>
         </div>
         <div class="lab-grid">
           <article class="lab-card">
@@ -197,6 +279,27 @@
             <p class="explain-box" id="predictionExplanation"></p>
           </article>
         </div>
+
+        <div class="graph-grid">
+          <article class="lab-card">
+            <div class="lab-head">
+              <h3>Function Grapher</h3>
+              <p>Enter a function such as <code>y=x^2+5x+6</code> or <code>x^2-4x+3</code>.</p>
+            </div>
+            <form class="graph-form" id="functionForm">
+              <label class="stacked-field">
+                <span>Function input</span>
+                <input id="functionInput" type="text" value="y=x^2+5x+6" placeholder="y=x^2+5x+6">
+              </label>
+              <div class="chat-actions">
+                <button class="button button-primary" type="submit">Plot function</button>
+                <button class="button button-secondary" type="button" id="useFunctionInChat">Ask AI about this graph</button>
+              </div>
+            </form>
+            <div class="equation-line" id="functionStatus">Ready to graph.</div>
+            <svg id="functionChart" viewBox="0 0 320 220" role="img" aria-label="Function graph"></svg>
+          </article>
+        </div>
       </section>
 
       <section class="section" id="chain">
@@ -204,8 +307,8 @@
           <p class="eyebrow">Blockchain Layer</p>
           <h2>Simulated credential chain.</h2>
           <p>
-            This gives the AI story a trust layer. Every achievement entry references the previous hash so the judges can see
-            how learning data becomes a transparent record.
+            This gives the AI story a trust layer. Every achievement entry references the previous hash so judges can see
+            how learning progress becomes a transparent record.
           </p>
         </div>
         <div class="chain-layout">
@@ -246,5 +349,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
-   
