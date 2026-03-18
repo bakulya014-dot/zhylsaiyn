@@ -58,6 +58,13 @@ a {
   color: inherit;
 }
 
+code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 8px;
+  background: rgba(18, 32, 45, 0.08);
+  font-family: "IBM Plex Mono", monospace;
+}
+
 .page-shell {
   width: min(var(--content-width), calc(100% - 32px));
   margin: 0 auto;
@@ -147,7 +154,10 @@ a {
 .chain-builder,
 .chain-rail,
 .narrative-card,
-.contact-section {
+.contact-section,
+.tutor-sidebar,
+.tutor-chat-card,
+.sidebar-card {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -155,7 +165,9 @@ a {
 }
 
 .hero-copy,
-.hero-panel {
+.hero-panel,
+.tutor-sidebar,
+.tutor-chat-card {
   border-radius: var(--radius-xl);
   padding: 32px;
 }
@@ -202,15 +214,22 @@ h3 {
 .signal-card p,
 .explain-box,
 .result-panel,
-.block-card p {
+.block-card p,
+.chat-message p,
+.input-note,
+.context-chip {
   color: var(--muted);
   line-height: 1.65;
 }
 
-.hero-actions {
+.hero-actions,
+.chat-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.hero-actions {
   margin-top: 28px;
 }
 
@@ -221,6 +240,8 @@ h3 {
   border-radius: 999px;
   padding: 13px 18px;
   font-weight: 700;
+  border: none;
+  cursor: pointer;
 }
 
 .button-primary {
@@ -234,13 +255,20 @@ body.dark-mode .button-primary {
 }
 
 .button-secondary {
+  background: transparent;
   border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.full-width {
+  width: 100%;
 }
 
 .panel-grid,
 .card-grid,
 .lab-grid,
-.narrative-grid {
+.narrative-grid,
+.graph-grid {
   display: grid;
   gap: 18px;
 }
@@ -297,7 +325,7 @@ body.dark-mode .button-primary {
 }
 
 .section-heading {
-  max-width: 760px;
+  max-width: 820px;
   margin-bottom: 22px;
 }
 
@@ -310,7 +338,8 @@ body.dark-mode .button-primary {
 .chain-builder,
 .chain-rail,
 .narrative-card,
-.contact-section {
+.contact-section,
+.sidebar-card {
   border-radius: var(--radius-xl);
   padding: 24px;
 }
@@ -367,8 +396,185 @@ body.dark-mode .button-primary {
   color: var(--coral);
 }
 
+.tutor-layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 22px;
+}
+
+.tutor-sidebar {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.sidebar-card {
+  padding: 20px;
+}
+
+.stacked-field {
+  display: grid;
+  gap: 8px;
+}
+
+.stacked-field span,
+.chat-label,
+.control-form span,
+.block-form span {
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+input[type="text"],
+input[type="number"],
+input[type="password"],
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.mode-pill-group,
+.example-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mode-pill,
+.example-chip {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mode-pill.is-active {
+  background: var(--ink);
+  color: #fffaf0;
+}
+
+body.dark-mode .mode-pill.is-active {
+  background: #f5ebda;
+  color: #161616;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.context-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(38, 125, 116, 0.1);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.chat-feed {
+  height: 540px;
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+  padding: 8px 4px 8px 0;
+  margin-bottom: 18px;
+}
+
+.chat-message {
+  max-width: 88%;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+}
+
+.chat-message.user {
+  margin-left: auto;
+  border-bottom-right-radius: 6px;
+  background: rgba(219, 108, 77, 0.12);
+}
+
+.chat-message.ai {
+  margin-right: auto;
+  border-bottom-left-radius: 6px;
+}
+
+.chat-message.thinking {
+  opacity: 0.9;
+}
+
+.chat-role {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.78rem;
+  font-family: "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  color: var(--coral);
+}
+
+.typing-indicator {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--coral);
+  animation: bounce 1s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.chat-form {
+  display: grid;
+  gap: 12px;
+}
+
 .lab-grid {
   grid-template-columns: repeat(2, 1fr);
+}
+
+.graph-grid {
+  margin-top: 18px;
+  grid-template-columns: 1fr;
 }
 
 .lab-head {
@@ -376,7 +582,8 @@ body.dark-mode .button-primary {
 }
 
 .control-form,
-.block-form {
+.block-form,
+.graph-form {
   display: grid;
   gap: 16px;
 }
@@ -387,26 +594,9 @@ body.dark-mode .button-primary {
   gap: 8px;
 }
 
-.control-form span,
-.block-form span {
-  font-size: 0.92rem;
-  color: var(--muted);
-}
-
 input[type="range"] {
   width: 100%;
   accent-color: var(--coral);
-}
-
-input[type="text"],
-input[type="number"] {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px 14px;
-  background: var(--surface-strong);
-  color: var(--text);
-  font: inherit;
 }
 
 .equation-line {
@@ -417,7 +607,8 @@ input[type="number"] {
   font-family: "IBM Plex Mono", monospace;
 }
 
-#quadraticChart {
+#quadraticChart,
+#functionChart {
   width: 100%;
   height: auto;
   margin-bottom: 12px;
@@ -521,7 +712,8 @@ input[type="number"] {
   .chain-layout,
   .card-grid,
   .lab-grid,
-  .narrative-grid {
+  .narrative-grid,
+  .tutor-layout {
     grid-template-columns: 1fr;
   }
 
@@ -538,6 +730,10 @@ input[type="number"] {
   .hero {
     padding-top: 36px;
   }
+
+  .chat-header {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 640px) {
@@ -553,7 +749,9 @@ input[type="number"] {
   .chain-builder,
   .chain-rail,
   .narrative-card,
-  .contact-section {
+  .contact-section,
+  .tutor-sidebar,
+  .tutor-chat-card {
     padding: 18px;
   }
 
@@ -563,5 +761,13 @@ input[type="number"] {
 
   .hero-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .chat-feed {
+    height: 460px;
+  }
+
+  .chat-message {
+    max-width: 100%;
   }
 }
