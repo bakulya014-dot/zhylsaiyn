@@ -66,15 +66,18 @@
       <div class="math-grid">
         <!-- AI Math Chatbot Box -->
         <article class="math-box" style="grid-column: span 2;">
-          <h3>AI Math Assistant</h3>
-          <div id="chat-box" style="border: 1px solid #ccc; height: 250px; overflow-y: auto; padding: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-            <p><b>MathBot:</b> Hello! Ask me for a math formula like 'Quadratic' or 'Pythagorean'.</p>
-          </div>
-          <div class="btn-row">
-            <input type="text" id="user-input" placeholder="Type a math topic..." style="flex-grow: 1; padding: 10px;">
-            <button class="action" onclick="askAI()">Ask AI</button>
-          </div>
-        </article>
+  <h3>AI Math Brain & Logic Calculator</h3>
+  <div id="chat-box" style="border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 15px; margin-bottom: 10px; background: #1a1a1a; color: white; border-radius: 8px; font-family: 'Work Sans', sans-serif;">
+    <p><b>MathBot:</b> I am now connected to a neural network. Ask me to solve a word problem, explain a theorem, or calculate complex math!</p>
+  </div>
+  
+  <div id="loading" style="display:none; color: #00ffcc; margin-bottom: 10px; font-size: 0.8rem;">MathBot is thinking...</div>
+
+  <div class="btn-row">
+    <input type="text" id="user-input" placeholder="Example: 'If a triangle has sides 3 and 4, what is the angle?'" style="flex-grow: 1; padding: 12px; border-radius: 5px; border: none;">
+    <button class="action" onclick="askAI()">Ask Brain</button>
+  </div>
+</article>
 
         <!-- Existing Quadratic Tool -->
         <article class="math-box">
