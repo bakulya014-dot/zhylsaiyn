@@ -127,7 +127,13 @@ The first part of the formula</p>
           </div>
         </article>
 
-       
+       <div id="chat-container">
+    <div id="chat-box" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin-bottom: 10px;">
+        <!-- Messages will appear here -->
+    </div>
+    <input type="text" id="user-input" placeholder="Ask for a math equation (e.g., Quadratic Formula)..." style="width: 80%;">
+    <button onclick="askAI()">Ask</button>
+</div>
 
         <article class="math-box">
           <h3>Quadratic Playground</h3>
