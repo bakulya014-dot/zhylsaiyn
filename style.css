@@ -9,6 +9,8 @@
   --gold: #d79f2d;
   --teal: #267d74;
   --ink: #12202d;
+  --danger: #b5442c;
+  --success: #1d7a51;
   --shadow: 0 24px 60px rgba(27, 18, 10, 0.12);
   --radius-xl: 28px;
   --radius-lg: 20px;
@@ -471,6 +473,14 @@ body.dark-mode .mode-pill.is-active {
   color: #161616;
 }
 
+.status-ok {
+  color: var(--success);
+}
+
+.status-error {
+  color: var(--danger);
+}
+
 .chat-header {
   display: flex;
   justify-content: space-between;
@@ -515,6 +525,11 @@ body.dark-mode .mode-pill.is-active {
 .chat-message.ai {
   margin-right: auto;
   border-bottom-left-radius: 6px;
+}
+
+.chat-message.error {
+  border-color: rgba(181, 68, 44, 0.3);
+  background: rgba(181, 68, 44, 0.08);
 }
 
 .chat-message.thinking {
@@ -771,3 +786,4 @@ input[type="range"] {
     max-width: 100%;
   }
 }
+
