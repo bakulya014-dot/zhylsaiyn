@@ -1,3 +1,8 @@
+// Gemini configuration.
+// You can hardcode your key here for a quick demo, or paste it into the UI field.
+const GEMINI_API_KEY = "YOUR_API_KEY";
+const GEMINI_MODEL = "gemini-2.5-flash";
+
 const modeToggle = document.querySelector("#modeToggle");
 const metricValues = document.querySelectorAll("[data-count]");
 const revealTargets = document.querySelectorAll(".section, .hero-copy, .hero-panel");
@@ -21,6 +26,28 @@ const achievementName = document.querySelector("#achievementName");
 const achievementScore = document.querySelector("#achievementScore");
 const chainRail = document.querySelector("#chainRail");
 
+const tutorSection = document.querySelector("#tutor");
+const apiKeyInput = document.querySelector("#apiKeyInput");
+const modePills = document.querySelectorAll(".mode-pill");
+const checkSolutionButton = document.querySelector("#checkSolutionButton");
+const exampleButtons = document.querySelectorAll(".example-chip");
+const topicChip = document.querySelector("#topicChip");
+const chatFeed = document.querySelector("#chatFeed");
+const chatForm = document.querySelector("#chatForm");
+const userPrompt = document.querySelector("#userPrompt");
+const clearChatButton = document.querySelector("#clearChatButton");
+const sendPromptButton = document.querySelector("#sendPromptButton");
+
+const functionForm = document.querySelector("#functionForm");
+const functionInput = document.querySelector("#functionInput");
+const functionStatus = document.querySelector("#functionStatus");
+const functionChart = document.querySelector("#functionChart");
+const useFunctionInChat = document.querySelector("#useFunctionInChat");
+
+let activeMode = "explain";
+let thinkingMessageNode = null;
+
+// Theme toggle.
 function updateModeLabel() {
   modeToggle.textContent = document.body.classList.contains("dark-mode") ? "Dark Mode" : "Light Mode";
 }
@@ -32,11 +59,13 @@ modeToggle.addEventListener("click", () => {
 
 updateModeLabel();
 
+// Small stat animation for the hero metrics.
 function animateMetrics() {
   metricValues.forEach((node) => {
     const target = Number(node.dataset.count);
     let current = 0;
     const step = Math.max(1, Math.ceil(target / 32));
+
     const timer = window.setInterval(() => {
       current += step;
       if (current >= target) {
@@ -48,6 +77,7 @@ function animateMetrics() {
   });
 }
 
+// Reveal animation when sections enter the viewport.
 function setupReveal() {
   revealTargets.forEach((target) => target.classList.add("reveal"));
 
@@ -62,6 +92,244 @@ function setupReveal() {
   revealTargets.forEach((target) => observer.observe(target));
 }
 
+// Context awareness: the AI knows what topic page the user is on.
+function getCurrentTopic() {
+  const topic = tutorSection?.dataset.topic || "general algebra";
+  topicChip.textContent = `Topic: ${topic.charAt(0).toUpperCase()}${topic.slice(1)}`;
+  return topic;
+}
+
+// Basic HTML escaping before rendering text in the chat.
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+// Preserve line breaks and simple bold formatting from AI output.
+function formatAiText(text) {
+  const safe = escapeHtml(text);
+  return safe
+    .replace(/\n/g, "<br>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+}
+
+function scrollChatToBottom() {
+  chatFeed.scrollTop = chatFeed.scrollHeight;
+}
+
+// Re-render math formulas after new AI messages arrive.
+function queueMathTypeset() {
+  if (window.MathJax?.typesetPromise) {
+    window.MathJax.typesetPromise([chatFeed]).catch(() => {});
+  }
+}
+
+// Add a message bubble to the chat.
+function createMessage(role, html, extraClass = "") {
+  const article = document.createElement("article");
+  article.className = `chat-message ${role} ${extraClass}`.trim();
+
+  const roleLabel = document.createElement("span");
+  roleLabel.className = "chat-role";
+  roleLabel.textContent = role === "user" ? "You" : "AI Tutor";
+
+  const body = document.createElement("div");
+  body.className = "chat-body";
+  body.innerHTML = html;
+
+  article.append(roleLabel, body);
+  chatFeed.appendChild(article);
+
+  scrollChatToBottom();
+  queueMathTypeset();
+  return article;
+}
+
+// "Thinking..." loading bubble.
+function showThinkingMessage() {
+  thinkingMessageNode = createMessage(
+    "ai",
+    '<div class="typing-indicator" aria-label="Thinking"><span></span><span></span><span></span></div><p>Thinking...</p>',
+    "thinking"
+  );
+}
+
+function removeThinkingMessage() {
+  if (thinkingMessageNode) {
+    thinkingMessageNode.remove();
+    thinkingMessageNode = null;
+  }
+}
+
+// Typing effect for the final AI answer.
+function typeAiMessage(text) {
+  const node = createMessage("ai", "<p></p>");
+  const paragraph = node.querySelector("p");
+  let index = 0;
+
+  const timer = window.setInterval(() => {
+    index += 3;
+    paragraph.innerHTML = formatAiText(text.slice(0, index));
+    scrollChatToBottom();
+
+    if (index >= text.length) {
+      window.clearInterval(timer);
+      paragraph.innerHTML = formatAiText(text);
+      queueMathTypeset();
+    }
+  }, 12);
+}
+
+// Smart mode buttons.
+function setMode(mode) {
+  activeMode = mode;
+  modePills.forEach((pill) => {
+    pill.classList.toggle("is-active", pill.dataset.mode === mode);
+  });
+}
+
+function getModeInstruction() {
+  if (activeMode === "fast") {
+    return "Mode: Solve fast. Give the shortest correct solution with clear numbered steps and a concise final answer.";
+  }
+
+  if (activeMode === "check") {
+    return "Mode: Check answer. Carefully inspect the student's work, point out mistakes, explain why they are mistakes, and show the corrected method.";
+  }
+
+  return "Mode: Explain simply. Teach clearly with supportive step-by-step reasoning and simple language.";
+}
+
+// Build the tutor system prompt with page context.
+function buildSystemPrompt() {
+  const topic = getCurrentTopic();
+
+  return [
+    "You are a professional math tutor. Always explain step-by-step, clearly, and simply. Focus on understanding.",
+    `User is currently learning ${topic}.`,
+    getModeInstruction(),
+    "When solving, break the method into steps, explain each step, and give the final answer.",
+    "If the user asks to check a solution, identify mistakes, explain why they are wrong, and show the correct method.",
+    "If the prompt includes a function, mention graph features when useful.",
+    "Use readable formatting and keep the explanation educational."
+  ].join(" ");
+}
+
+// Gemini expects a contents array.
+function buildContents(prompt) {
+  return [
+    {
+      role: "user",
+      parts: [
+        {
+          text: `${buildSystemPrompt()}\n\nStudent request:\n${prompt}`
+        }
+      ]
+    }
+  ];
+}
+
+// Real Gemini API call using fetch and async/await.
+async function callGemini(prompt) {
+  const key = apiKeyInput.value.trim() || GEMINI_API_KEY;
+
+  if (!key || key === "YOUR_API_KEY") {
+    throw new Error("Add your Gemini API key first.");
+  }
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: buildContents(prompt)
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Gemini request failed: ${response.status} ${errorBody}`);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
+
+  if (!text) {
+    throw new Error("Gemini returned an empty response.");
+  }
+
+  return text;
+}
+
+// Parse user-entered function text.
+function extractExpression(rawInput) {
+  return rawInput
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/^y=/i, "")
+    .replace(/^f\(x\)=/i, "");
+}
+
+function normalizeExpression(expression) {
+  return expression
+    .replace(/\^/g, "**")
+    .replace(/(\d)(x)/gi, "$1*$2")
+    .replace(/(\))(\w)/g, "$1*$2")
+    .replace(/(\w)(\()/g, "$1*$2")
+    .replace(/(\d)(\()/g, "$1*$2");
+}
+
+function isExpressionSafe(expression) {
+  return /^[0-9x+\-*/().*\s]+$/i.test(expression);
+}
+
+function evaluateExpression(expression, x) {
+  const normalized = normalizeExpression(expression).replaceAll("x", `(${x})`);
+  return Function(`"use strict"; return (${normalized});`)();
+}
+
+// SVG fallback grapher for general function input.
+function renderSvgFunction(chartNode, expression, strokeColor = "var(--teal)") {
+  const safeExpression = extractExpression(expression);
+
+  if (!isExpressionSafe(safeExpression)) {
+    throw new Error("Only numeric expressions with x, parentheses, +, -, *, /, and ^ are supported.");
+  }
+
+  const width = 320;
+  const height = 220;
+  const originX = width / 2;
+  const originY = height / 2;
+  const scale = 20;
+  const points = [];
+
+  for (let x = -8; x <= 8; x += 0.15) {
+    const y = evaluateExpression(safeExpression, x);
+    if (Number.isFinite(y)) {
+      points.push(`${(originX + x * scale).toFixed(2)},${(originY - y * scale).toFixed(2)}`);
+    }
+  }
+
+  if (points.length < 2) {
+    throw new Error("The function could not be graphed from the current input.");
+  }
+
+  chartNode.innerHTML = `
+    <line x1="0" y1="${originY}" x2="${width}" y2="${originY}" stroke="currentColor" stroke-opacity="0.25" />
+    <line x1="${originX}" y1="0" x2="${originX}" y2="${height}" stroke="currentColor" stroke-opacity="0.25" />
+    <polyline fill="none" stroke="${strokeColor}" stroke-width="3" points="${points.join(" ")}" />
+  `;
+}
+
+// Existing quadratic visualizer, kept and polished.
 function drawQuadratic() {
   let a = Number(coefA.value);
   const b = Number(coefB.value);
@@ -79,8 +347,8 @@ function drawQuadratic() {
   const originX = width / 2;
   const originY = height / 2;
   const scale = 18;
-
   const points = [];
+
   for (let x = -8; x <= 8; x += 0.25) {
     const y = a * x * x + b * x + c;
     const px = originX + x * scale;
@@ -104,12 +372,7 @@ function drawQuadratic() {
   quadraticChart.innerHTML = `
     <line x1="0" y1="${originY}" x2="${width}" y2="${originY}" stroke="currentColor" stroke-opacity="0.25" />
     <line x1="${originX}" y1="0" x2="${originX}" y2="${height}" stroke="currentColor" stroke-opacity="0.25" />
-    <polyline
-      fill="none"
-      stroke="var(--coral)"
-      stroke-width="3"
-      points="${points.join(" ")}"
-    />
+    <polyline fill="none" stroke="var(--coral)" stroke-width="3" points="${points.join(" ")}" />
     <circle cx="${(originX + vertexX * scale).toFixed(2)}" cy="${(originY - vertexY * scale).toFixed(2)}" r="5" fill="var(--teal)" />
   `;
 
@@ -117,10 +380,11 @@ function drawQuadratic() {
     <strong>Graph insight</strong><br>
     Vertex: (${vertexX.toFixed(2)}, ${vertexY.toFixed(2)})<br>
     ${rootsText}<br>
-    The parabola opens ${a > 0 ? "upward" : "downward"}, which is easy to connect to optimization or trend modeling in your pitch.
+    The parabola opens ${a > 0 ? "upward" : "downward"}, which is ideal for explaining turning points and optimization.
   `;
 }
 
+// Existing lightweight AI predictor.
 function updatePrediction() {
   const hours = Number(studyHours.value);
   const tests = Number(practiceTests.value);
@@ -142,9 +406,10 @@ function updatePrediction() {
 
   predictionExplanation.textContent =
     `The model reads ${hours} study hours, ${tests} practice tests, and ${consistencyScore}% consistency as ${band}. ` +
-    `For the hackathon story, AI gives the recommendation, while blockchain can preserve the final verified milestone.`;
+    `This reinforces the product story: AI interprets learning behavior, then the ledger can store key milestones.`;
 }
 
+// Simple blockchain-style hash generator for the credential demo.
 function hashString(value) {
   let hash = 0;
   for (let i = 0; i < value.length; i += 1) {
@@ -167,6 +432,7 @@ function renderChain() {
   chainRail.innerHTML = chain
     .map((block, index) => {
       const blockHash = hashString(`${block.student}|${block.achievement}|${block.score}|${block.previousHash}`);
+
       return `
         <article class="block-card">
           <span class="block-index">Block ${index}</span>
@@ -180,25 +446,130 @@ function renderChain() {
     .join("");
 }
 
+// Seed initial AI tutor messages.
+function seedChat() {
+  chatFeed.innerHTML = "";
+
+  createMessage(
+    "ai",
+    "<p>Welcome. I can solve math step by step, explain simply, check your own solution for mistakes, and help with graph interpretation. Add your Gemini API key and ask your first question.</p>"
+  );
+
+  createMessage(
+    "ai",
+    "<p>Example: <code>Solve x^2 - 5x + 6 = 0 step by step</code> or <code>Check my solution: I said the roots are 2 and 5</code>.</p>"
+  );
+}
+
+// Main chat flow.
+async function handlePromptSubmission(prompt) {
+  const trimmedPrompt = prompt.trim();
+  if (!trimmedPrompt) {
+    return;
+  }
+
+  createMessage("user", `<p>${formatAiText(trimmedPrompt)}</p>`);
+  userPrompt.value = "";
+  sendPromptButton.disabled = true;
+  showThinkingMessage();
+
+  try {
+    const aiText = await callGemini(trimmedPrompt);
+    removeThinkingMessage();
+    typeAiMessage(aiText);
+  } catch (error) {
+    removeThinkingMessage();
+    createMessage("ai", `<p>${formatAiText(error.message)}</p>`);
+  } finally {
+    sendPromptButton.disabled = false;
+  }
+}
+
+// Smart mode switching.
+modePills.forEach((pill) => {
+  pill.addEventListener("click", () => {
+    setMode(pill.dataset.mode);
+  });
+});
+
+// "Check my solution" quick helper.
+checkSolutionButton.addEventListener("click", () => {
+  setMode("check");
+  userPrompt.value = "Check my solution:\n\nProblem:\n\nMy work:\n";
+  userPrompt.focus();
+});
+
+// Example chips.
+exampleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    userPrompt.value = button.dataset.example;
+    userPrompt.focus();
+  });
+});
+
+// Chat submit.
+chatForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await handlePromptSubmission(userPrompt.value);
+});
+
+// Clear chat.
+clearChatButton.addEventListener("click", () => {
+  seedChat();
+});
+
+// Graph submit.
+functionForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  try {
+    renderSvgFunction(functionChart, functionInput.value, "var(--teal)");
+    functionStatus.textContent = `Graphed: ${functionInput.value}`;
+  } catch (error) {
+    functionChart.innerHTML = "";
+    functionStatus.textContent = error.message;
+  }
+});
+
+// Send graph context into the chat.
+useFunctionInChat.addEventListener("click", () => {
+  userPrompt.value = `Explain this function and its graph: ${functionInput.value}`;
+  userPrompt.focus();
+});
+
+// Credential chain form.
 blockForm.addEventListener("submit", (event) => {
   event.preventDefault();
+
   const previous = chain[chain.length - 1];
   const previousHash = hashString(`${previous.student}|${previous.achievement}|${previous.score}|${previous.previousHash}`);
+
   chain.push({
     student: studentName.value.trim() || "Anonymous",
     achievement: achievementName.value.trim() || "Learning milestone",
     score: Math.max(0, Math.min(100, Number(achievementScore.value) || 0)),
     previousHash
   });
+
   renderChain();
 });
 
+// Event listeners for the interactive modules.
 [coefA, coefB, coefC].forEach((input) => input.addEventListener("input", drawQuadratic));
 [studyHours, practiceTests, consistency].forEach((input) => input.addEventListener("input", updatePrediction));
 
+// Initial app boot.
 animateMetrics();
 setupReveal();
+getCurrentTopic();
 drawQuadratic();
 updatePrediction();
 renderChain();
+seedChat();
 
+try {
+  renderSvgFunction(functionChart, functionInput.value, "var(--teal)");
+  functionStatus.textContent = `Graphed: ${functionInput.value}`;
+} catch (error) {
+  functionStatus.textContent = error.message;
+}
