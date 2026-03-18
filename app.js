@@ -1,8 +1,3 @@
-// =====================================================
-// AI Math Tutor Web App
-// Frontend-only Gemini integration
-// Paste your real Gemini API key below.
-// =====================================================
 const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
 const GEMINI_MODEL = "gemini-2.5-flash";
 
