@@ -268,6 +268,31 @@ The first part of the formula</p>
   </script>
   <script src="i18n.js"></script>
   <script src="app.js"></script>
+   function askAI() {
+    const input = document.getElementById('user-input').value;
+    const chatBox = document.getElementById('chat-box');
+
+    // 1. Add user message to chat
+    chatBox.innerHTML += `<p><b>You:</b> ${input}</p>`;
+
+    // 2. Simulated AI Logic (In a real app, you fetch from an API here)
+    let aiResponse = "";
+    
+    if (input.toLowerCase().includes("quadratic")) {
+        aiResponse = "The quadratic formula is used to solve equations of the form \(ax^2 + bx + c = 0\). <br> Equation: $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$ <br> Example: For \(x^2 + 5x + 6 = 0\), a=1, b=5, c=6.";
+    } else {
+        aiResponse = "I can help with math! Try asking for the 'quadratic' formula.";
+    }
+
+    // 3. Add AI response to chat
+    chatBox.innerHTML += `<p><b>MathBot:</b> ${aiResponse}</p>`;
+
+    // 4. TELL MATHJAX TO RENDER THE NEW MATH
+    MathJax.typeset();
+
+    // Clear input
+    document.getElementById('user-input').value = "";
+}
 </body>
 </html>
 
