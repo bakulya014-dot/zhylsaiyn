@@ -1,6 +1,9 @@
-// Gemini configuration.
-// You can hardcode your key here for a quick demo, or paste it into the UI field.
-const GEMINI_API_KEY = "YOUR_API_KEY";
+// =====================================================
+// AI Math Tutor Web App
+// Frontend-only Gemini integration
+// Paste your real Gemini API key below.
+// =====================================================
+const GEMINI_API_KEY = "PASTE_YOUR_GEMINI_API_KEY_HERE";
 const GEMINI_MODEL = "gemini-2.5-flash";
 
 const modeToggle = document.querySelector("#modeToggle");
@@ -28,6 +31,7 @@ const chainRail = document.querySelector("#chainRail");
 
 const tutorSection = document.querySelector("#tutor");
 const apiKeyInput = document.querySelector("#apiKeyInput");
+const apiStatus = document.querySelector("#apiStatus");
 const modePills = document.querySelectorAll(".mode-pill");
 const checkSolutionButton = document.querySelector("#checkSolutionButton");
 const exampleButtons = document.querySelectorAll(".example-chip");
@@ -47,7 +51,6 @@ const useFunctionInChat = document.querySelector("#useFunctionInChat");
 let activeMode = "explain";
 let thinkingMessageNode = null;
 
-// Theme toggle.
 function updateModeLabel() {
   modeToggle.textContent = document.body.classList.contains("dark-mode") ? "Dark Mode" : "Light Mode";
 }
@@ -59,7 +62,31 @@ modeToggle.addEventListener("click", () => {
 
 updateModeLabel();
 
-// Small stat animation for the hero metrics.
+function setApiStatus(message, type = "") {
+  apiStatus.textContent = `Status: ${message}`;
+  apiStatus.classList.remove("status-ok", "status-error");
+
+  if (type) {
+    apiStatus.classList.add(type);
+  }
+}
+
+if (GEMINI_API_KEY && GEMINI_API_KEY !== "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+  setApiStatus("hardcoded API key loaded", "status-ok");
+} else {
+  setApiStatus("waiting for key");
+}
+
+apiKeyInput.addEventListener("input", () => {
+  if (apiKeyInput.value.trim()) {
+    setApiStatus("runtime API key entered", "status-ok");
+  } else if (GEMINI_API_KEY !== "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+    setApiStatus("hardcoded API key loaded", "status-ok");
+  } else {
+    setApiStatus("waiting for key");
+  }
+});
+
 function animateMetrics() {
   metricValues.forEach((node) => {
     const target = Number(node.dataset.count);
@@ -77,7 +104,6 @@ function animateMetrics() {
   });
 }
 
-// Reveal animation when sections enter the viewport.
 function setupReveal() {
   revealTargets.forEach((target) => target.classList.add("reveal"));
 
@@ -92,14 +118,12 @@ function setupReveal() {
   revealTargets.forEach((target) => observer.observe(target));
 }
 
-// Context awareness: the AI knows what topic page the user is on.
 function getCurrentTopic() {
   const topic = tutorSection?.dataset.topic || "general algebra";
   topicChip.textContent = `Topic: ${topic.charAt(0).toUpperCase()}${topic.slice(1)}`;
   return topic;
 }
 
-// Basic HTML escaping before rendering text in the chat.
 function escapeHtml(value) {
   return value
     .replaceAll("&", "&amp;")
@@ -109,7 +133,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-// Preserve line breaks and simple bold formatting from AI output.
 function formatAiText(text) {
   const safe = escapeHtml(text);
   return safe
@@ -121,14 +144,12 @@ function scrollChatToBottom() {
   chatFeed.scrollTop = chatFeed.scrollHeight;
 }
 
-// Re-render math formulas after new AI messages arrive.
 function queueMathTypeset() {
   if (window.MathJax?.typesetPromise) {
     window.MathJax.typesetPromise([chatFeed]).catch(() => {});
   }
 }
 
-// Add a message bubble to the chat.
 function createMessage(role, html, extraClass = "") {
   const article = document.createElement("article");
   article.className = `chat-message ${role} ${extraClass}`.trim();
@@ -143,13 +164,11 @@ function createMessage(role, html, extraClass = "") {
 
   article.append(roleLabel, body);
   chatFeed.appendChild(article);
-
   scrollChatToBottom();
   queueMathTypeset();
   return article;
 }
 
-// "Thinking..." loading bubble.
 function showThinkingMessage() {
   thinkingMessageNode = createMessage(
     "ai",
@@ -165,7 +184,6 @@ function removeThinkingMessage() {
   }
 }
 
-// Typing effect for the final AI answer.
 function typeAiMessage(text) {
   const node = createMessage("ai", "<p></p>");
   const paragraph = node.querySelector("p");
@@ -184,7 +202,6 @@ function typeAiMessage(text) {
   }, 12);
 }
 
-// Smart mode buttons.
 function setMode(mode) {
   activeMode = mode;
   modePills.forEach((pill) => {
@@ -204,10 +221,8 @@ function getModeInstruction() {
   return "Mode: Explain simply. Teach clearly with supportive step-by-step reasoning and simple language.";
 }
 
-// Build the tutor system prompt with page context.
 function buildSystemPrompt() {
   const topic = getCurrentTopic();
-
   return [
     "You are a professional math tutor. Always explain step-by-step, clearly, and simply. Focus on understanding.",
     `User is currently learning ${topic}.`,
@@ -219,7 +234,6 @@ function buildSystemPrompt() {
   ].join(" ");
 }
 
-// Gemini expects a contents array.
 function buildContents(prompt) {
   return [
     {
@@ -233,17 +247,23 @@ function buildContents(prompt) {
   ];
 }
 
-// Real Gemini API call using fetch and async/await.
 async function callGemini(prompt) {
   const key = apiKeyInput.value.trim() || GEMINI_API_KEY;
 
-  if (!key || key === "YOUR_API_KEY") {
-    throw new Error("Add your Gemini API key first.");
+  if (!key || key === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+    setApiStatus("missing API key", "status-error");
+    throw new Error("Add your Gemini API key first. Paste it into the code or the field above.");
   }
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
-    {
+  setApiStatus("connecting to Gemini...");
+
+  const endpoint =
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+
+  let response;
+
+  try {
+    response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -251,25 +271,30 @@ async function callGemini(prompt) {
       body: JSON.stringify({
         contents: buildContents(prompt)
       })
-    }
-  );
+    });
+  } catch (networkError) {
+    setApiStatus("network error while calling Gemini", "status-error");
+    throw new Error(`Network error: ${networkError.message}. Check internet access or browser restrictions.`);
+  }
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`Gemini request failed: ${response.status} ${errorBody}`);
+    setApiStatus(`Gemini error ${response.status}`, "status-error");
+    throw new Error(`Gemini request failed: ${response.status}. ${errorBody}`);
   }
 
   const data = await response.json();
   const text = data?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
 
   if (!text) {
+    setApiStatus("Gemini returned empty content", "status-error");
     throw new Error("Gemini returned an empty response.");
   }
 
+  setApiStatus("Gemini connected successfully", "status-ok");
   return text;
 }
 
-// Parse user-entered function text.
 function extractExpression(rawInput) {
   return rawInput
     .trim()
@@ -296,7 +321,6 @@ function evaluateExpression(expression, x) {
   return Function(`"use strict"; return (${normalized});`)();
 }
 
-// SVG fallback grapher for general function input.
 function renderSvgFunction(chartNode, expression, strokeColor = "var(--teal)") {
   const safeExpression = extractExpression(expression);
 
@@ -329,7 +353,6 @@ function renderSvgFunction(chartNode, expression, strokeColor = "var(--teal)") {
   `;
 }
 
-// Existing quadratic visualizer, kept and polished.
 function drawQuadratic() {
   let a = Number(coefA.value);
   const b = Number(coefB.value);
@@ -351,9 +374,7 @@ function drawQuadratic() {
 
   for (let x = -8; x <= 8; x += 0.25) {
     const y = a * x * x + b * x + c;
-    const px = originX + x * scale;
-    const py = originY - y * scale;
-    points.push(`${px.toFixed(2)},${py.toFixed(2)}`);
+    points.push(`${(originX + x * scale).toFixed(2)},${(originY - y * scale).toFixed(2)}`);
   }
 
   const discriminant = b * b - 4 * a * c;
@@ -384,7 +405,6 @@ function drawQuadratic() {
   `;
 }
 
-// Existing lightweight AI predictor.
 function updatePrediction() {
   const hours = Number(studyHours.value);
   const tests = Number(practiceTests.value);
@@ -409,7 +429,6 @@ function updatePrediction() {
     `This reinforces the product story: AI interprets learning behavior, then the ledger can store key milestones.`;
 }
 
-// Simple blockchain-style hash generator for the credential demo.
 function hashString(value) {
   let hash = 0;
   for (let i = 0; i < value.length; i += 1) {
@@ -432,7 +451,6 @@ function renderChain() {
   chainRail.innerHTML = chain
     .map((block, index) => {
       const blockHash = hashString(`${block.student}|${block.achievement}|${block.score}|${block.previousHash}`);
-
       return `
         <article class="block-card">
           <span class="block-index">Block ${index}</span>
@@ -446,22 +464,18 @@ function renderChain() {
     .join("");
 }
 
-// Seed initial AI tutor messages.
 function seedChat() {
   chatFeed.innerHTML = "";
-
   createMessage(
     "ai",
     "<p>Welcome. I can solve math step by step, explain simply, check your own solution for mistakes, and help with graph interpretation. Add your Gemini API key and ask your first question.</p>"
   );
-
   createMessage(
     "ai",
     "<p>Example: <code>Solve x^2 - 5x + 6 = 0 step by step</code> or <code>Check my solution: I said the roots are 2 and 5</code>.</p>"
   );
 }
 
-// Main chat flow.
 async function handlePromptSubmission(prompt) {
   const trimmedPrompt = prompt.trim();
   if (!trimmedPrompt) {
@@ -479,27 +493,31 @@ async function handlePromptSubmission(prompt) {
     typeAiMessage(aiText);
   } catch (error) {
     removeThinkingMessage();
-    createMessage("ai", `<p>${formatAiText(error.message)}</p>`);
+    console.error("Gemini chat error:", error);
+    createMessage("ai", `<p>${formatAiText(error.message)}</p>`, "error");
   } finally {
     sendPromptButton.disabled = false;
   }
 }
 
-// Smart mode switching.
 modePills.forEach((pill) => {
   pill.addEventListener("click", () => {
-    setMode(pill.dataset.mode);
+    activeMode = pill.dataset.mode;
+    modePills.forEach((item) => {
+      item.classList.toggle("is-active", item.dataset.mode === activeMode);
+    });
   });
 });
 
-// "Check my solution" quick helper.
 checkSolutionButton.addEventListener("click", () => {
-  setMode("check");
+  activeMode = "check";
+  modePills.forEach((item) => {
+    item.classList.toggle("is-active", item.dataset.mode === activeMode);
+  });
   userPrompt.value = "Check my solution:\n\nProblem:\n\nMy work:\n";
   userPrompt.focus();
 });
 
-// Example chips.
 exampleButtons.forEach((button) => {
   button.addEventListener("click", () => {
     userPrompt.value = button.dataset.example;
@@ -507,18 +525,15 @@ exampleButtons.forEach((button) => {
   });
 });
 
-// Chat submit.
 chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   await handlePromptSubmission(userPrompt.value);
 });
 
-// Clear chat.
 clearChatButton.addEventListener("click", () => {
   seedChat();
 });
 
-// Graph submit.
 functionForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
@@ -531,13 +546,11 @@ functionForm.addEventListener("submit", (event) => {
   }
 });
 
-// Send graph context into the chat.
 useFunctionInChat.addEventListener("click", () => {
   userPrompt.value = `Explain this function and its graph: ${functionInput.value}`;
   userPrompt.focus();
 });
 
-// Credential chain form.
 blockForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
@@ -554,11 +567,9 @@ blockForm.addEventListener("submit", (event) => {
   renderChain();
 });
 
-// Event listeners for the interactive modules.
 [coefA, coefB, coefC].forEach((input) => input.addEventListener("input", drawQuadratic));
 [studyHours, practiceTests, consistency].forEach((input) => input.addEventListener("input", updatePrediction));
 
-// Initial app boot.
 animateMetrics();
 setupReveal();
 getCurrentTopic();
