@@ -156,6 +156,63 @@
         if (e.key === "Enter") askAI();
     });
   </script>
+  async function askAI() {
+    const inputField = document.getElementById('user-input');
+    const chatBox = document.getElementById('chat-box');
+    const loadingStr = document.getElementById('loading');
+    const userText = inputField.value.trim();
+
+    if (!userText) return;
+
+    // 1. Show User Message
+    chatBox.innerHTML += `<p style="color: #5dade2;"><b>You:</b> ${userText}</p>`;
+    inputField.value = "";
+    loadingStr.style.display = "block"; // Show loading
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // 2. API CONFIGURATION
+    // Replace 'YOUR_API_KEY_HERE' with a real key from OpenAI or Groq
+    const API_KEY = 'YOUR_API_KEY_HERE'; 
+    const API_URL = "https://api.openai.com/v1/chat/completions"; 
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-3.5-turbo", // or "gpt-4"
+                messages: [
+                    {
+                        role: "system", 
+                        content: "You are an expert Math Tutor and Calculator. Always provide step-by-step logic. Use LaTeX for math formulas (wrap them in $$ for blocks and \\( \\) for inline). If asked to calculate, show the work."
+                    },
+                    { role: "user", content: userText }
+                ],
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+        const aiResult = data.choices[0].message.content;
+
+        // 3. Display AI Result
+        chatBox.innerHTML += `<p><b>MathBot:</b> ${aiResult}</p>`;
+        
+    } catch (error) {
+        chatBox.innerHTML += `<p style="color: red;"><b>Error:</b> Could not connect to the AI brain. Make sure your API key is correct.</p>`;
+        console.error(error);
+    }
+
+    // 4. Finalize
+    loadingStr.style.display = "none";
+    if (window.MathJax) {
+        MathJax.typesetPromise(); // Draw the math symbols
+    }
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
 </body>
 </html>
    
