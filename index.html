@@ -1,218 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Math/Tech Portfolio - Bakytzhan</title>
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
-
-  <!-- Math & Chart Libraries (Cleaned Duplicates) -->
-  <script>
-    window.MathJax = { 
-      tex: { inlineMath: [["$", "$"], ["\\(", "\\)"]] } 
-    };
-  </script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <script defer src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <script defer src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dc95feca6b9f6f2f9db2f9c8e6c393a7"></script>
-  
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZhylysAIyn | AI + Blockchain Hackathon Portfolio</title>
+  <meta
+    name="description"
+    content="Bakytzhan's hackathon portfolio for AI and blockchain: interactive math tools, AI learning analytics, and verifiable on-chain learning credentials."
+  >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <nav class="nav">
-    <div class="nav-inner">
-      <div class="brand">Bakytzhan.dev</div>
-      <div class="nav-links">
-        <a href="#home">Home</a>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="#top">ZhylysAIyn</a>
+      <nav class="site-nav">
         <a href="#projects">Projects</a>
-        <a href="#math">Math Lab</a>
-        <a href="#ai-research">AI Research</a>
+        <a href="#lab">Live Lab</a>
+        <a href="#chain">Blockchain</a>
         <a href="#contact">Contact</a>
-        <button id="themeToggle" class="theme-btn" type="button">Light Mode</button>
-        <button id="presentationToggle" class="theme-btn" type="button">Presentation Mode</button>
-      </div>
-    </div>
-  </nav>
+      </nav>
+      <button class="mode-toggle" id="modeToggle" type="button" aria-label="Toggle color mode">Light Mode</button>
+    </header>
 
-  <div class="container">
-    <section id="home" class="hero reveal">
-      <div>
-        <span class="pill">Math + Tech Portfolio</span>
-        <h1>Bakytzhan AI Research & Mathematical Systems Developer</h1>
-        <p class="tagline">
-          I build interactive math tools, data-driven apps, and creative visualizations.
-        </p>
-        <img src="https://media.istockphoto.com/id/898704212/photo/man-think-how-to-solve-the-problem.jpg?s=612x612&w=0&k=20&c=G0v9kQml0LfXqTp_U1hGTQxFODseWTqDJ-z29ENiaAQ=" alt="Math concept" class="hero-img" />
-      </div>
-      <div class="hero-card">
-        <h3>The Discriminant (D)</h3>
-        <p>The expression under the square root tells you the nature of the roots:</p>
-        <ul>
-            <li>$D > 0$: Two real roots.</li>
-            <li>$D = 0$: One real root.</li>
-            <li>$D < 0$: No real roots.</li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- Math Lab Section -->
-    <section id="math" class="section reveal">
-      <h2>Interactive Math Lab</h2>
-      
-      <div class="math-grid">
-        <!-- AI Math Chatbot Box -->
-        <article class="math-box" style="grid-column: span 2;">
-  <h3>AI Math Brain & Logic Calculator</h3>
-  <div id="chat-box" style="border: 1px solid #ccc; height: 300px; overflow-y: auto; padding: 15px; margin-bottom: 10px; background: #1a1a1a; color: white; border-radius: 8px; font-family: 'Work Sans', sans-serif;">
-    <p><b>MathBot:</b> I am now connected to a neural network. Ask me to solve a word problem, explain a theorem, or calculate complex math!</p>
-  </div>
-  
-  <div id="loading" style="display:none; color: #00ffcc; margin-bottom: 10px; font-size: 0.8rem;">MathBot is thinking...</div>
-
-  <div class="btn-row">
-    <input type="text" id="user-input" placeholder="Example: 'If a triangle has sides 3 and 4, what is the angle?'" style="flex-grow: 1; padding: 12px; border-radius: 5px; border: none;">
-    <button class="action" onclick="askAI()">Ask Brain</button>
-  </div>
-</article>
-
-        <!-- Existing Quadratic Tool -->
-        <article class="math-box">
-          <h3>Quadratic Playground</h3>
-          <div class="control-grid">
-            <label>a</label><input id="qa" type="number" value="1" step="0.1" />
-            <label>b</label><input id="qb" type="number" value="-5" step="0.1" />
-            <label>c</label><input id="qc" type="number" value="6" step="0.1" />
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">5.0 Hackathon / AI + Blockchain</p>
+          <h1>Building trustable learning products with math, AI, and verifiable data.</h1>
+          <p class="hero-text">
+            I am Bakytzhan, a student developer turning mathematical thinking into interactive products.
+            This concept evolves my portfolio into a hackathon-ready platform: AI-powered learning insights,
+            on-chain achievement records, and visual demos that explain the product in real time.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#lab">Open Live Demo</a>
+            <a class="button button-secondary" href="#projects">See Concept Stack</a>
           </div>
-          <div class="btn-row">
-            <button class="action" id="quadSolve">Solve</button>
+        </div>
+        <div class="hero-panel">
+          <div class="panel-grid">
+            <article class="signal-card">
+              <span class="signal-label">Core Theme</span>
+              <strong>AI x Blockchain for Education</strong>
+              <p>Use machine intelligence for guidance and blockchain for proof.</p>
+            </article>
+            <article class="signal-card">
+              <span class="signal-label">Flagship Idea</span>
+              <strong>Learning Credential Ledger</strong>
+              <p>Scores, badges, and milestones become portable records students can verify anywhere.</p>
+            </article>
+            <article class="signal-card">
+              <span class="signal-label">Demo Strategy</span>
+              <strong>Explainable Visual Interactions</strong>
+              <p>Graphs, predictions, and chain entries all update live so judges can understand the logic instantly.</p>
+            </article>
           </div>
-          <canvas id="quadCanvas" width="400" height="200"></canvas>
-        </article>
+          <div class="hero-metrics">
+            <div>
+              <span class="metric-value" data-count="3">0</span>
+              <span class="metric-label">Integrated demos</span>
+            </div>
+            <div>
+              <span class="metric-value" data-count="2">0</span>
+              <span class="metric-label">Tech layers</span>
+            </div>
+            <div>
+              <span class="metric-value" data-count="100">0</span>
+              <span class="metric-label">Pitch clarity</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <!-- Rest of your tools (Calculator, Fibonacci etc) remain here... -->
-      </div>
-    </section>
+      <section class="section" id="projects">
+        <div class="section-heading">
+          <p class="eyebrow">Concept Stack</p>
+          <h2>Three connected stories instead of isolated portfolio cards.</h2>
+          <p>
+            The original site already had strong math and AI ingredients. This version frames them as one product ecosystem
+            for a hackathon audience: learn, predict, and verify.
+          </p>
+        </div>
+        <div class="card-grid">
+          <article class="project-card accent-coral">
+            <p class="project-tag">Interactive Math Engine</p>
+            <h3>Quadratic Visualizer</h3>
+            <p>Transforms equations into explainable graphs, roots, and learning feedback for students in real time.</p>
+            <ul class="card-list">
+              <li>Live graph rendering</li>
+              <li>Equation insight generation</li>
+              <li>Strong demo-friendly visuals</li>
+            </ul>
+          </article>
+          <article class="project-card accent-gold">
+            <p class="project-tag">AI Learning Analytics</p>
+            <h3>Mastery Predictor</h3>
+            <p>Estimates student performance from study behavior and turns raw inputs into understandable confidence signals.</p>
+            <ul class="card-list">
+              <li>Explainable score prediction</li>
+              <li>Behavior-to-outcome mapping</li>
+              <li>Supports adaptive recommendations</li>
+            </ul>
+          </article>
+          <article class="project-card accent-teal">
+            <p class="project-tag">Blockchain Layer</p>
+            <h3>Credential Ledger</h3>
+            <p>Writes important learning milestones into a tamper-evident chain so certificates and badges are portable and verifiable.</p>
+            <ul class="card-list">
+              <li>Student achievement wallet concept</li>
+              <li>Hash-linked record simulation</li>
+              <li>Trust layer for education apps</li>
+            </ul>
+          </article>
+        </div>
+      </section>
 
-    <section id="contact" class="section reveal">
-      <h2>Contact</h2>
-      <div class="contact">
-        <article class="card"><h3>Email</h3><p>bakulya014@gmail.com</p></article>
-      </div>
-    </section>
+      <section class="section split-section">
+        <div class="section-heading">
+          <p class="eyebrow">Why It Fits</p>
+          <h2>A stronger hackathon narrative.</h2>
+        </div>
+        <div class="narrative-grid">
+          <article class="narrative-card">
+            <span>Problem</span>
+            <p>Learning platforms can predict performance, but students still lack trusted ownership over results and credentials.</p>
+          </article>
+          <article class="narrative-card">
+            <span>Solution</span>
+            <p>Combine AI for guidance with blockchain for record integrity, making insights useful and achievements portable.</p>
+          </article>
+          <article class="narrative-card">
+            <span>Pitch</span>
+            <p>“We do not just show a graph. We turn study behavior into evidence, then anchor that evidence in a transparent system.”</p>
+          </article>
+        </div>
+      </section>
 
-    <footer>© 2026 Bakytzhan - AI Mathematical Systems</footer>
+      <section class="section" id="lab">
+        <div class="section-heading">
+          <p class="eyebrow">Live Lab</p>
+          <h2>Interactive demo for judges.</h2>
+          <p>These modules are tuned for live explanation: one visual model, one AI model, and one blockchain simulation.</p>
+        </div>
+        <div class="lab-grid">
+          <article class="lab-card">
+            <div class="lab-head">
+              <h3>Quadratic Playground</h3>
+              <p>Move the coefficients and explain how the parabola changes.</p>
+            </div>
+            <form class="control-form" id="quadraticForm">
+              <label>
+                <span>a</span>
+                <input type="range" id="coefA" min="-6" max="6" step="1" value="1">
+              </label>
+              <label>
+                <span>b</span>
+                <input type="range" id="coefB" min="-12" max="12" step="1" value="-2">
+              </label>
+              <label>
+                <span>c</span>
+                <input type="range" id="coefC" min="-12" max="12" step="1" value="-3">
+              </label>
+            </form>
+            <div class="equation-line" id="equationLine"></div>
+            <svg id="quadraticChart" viewBox="0 0 320 220" role="img" aria-label="Quadratic graph"></svg>
+            <div class="result-panel" id="quadraticInsights"></div>
+          </article>
+
+          <article class="lab-card">
+            <div class="lab-head">
+              <h3>AI Mastery Predictor</h3>
+              <p>Simple score prediction that turns study patterns into an explainable result.</p>
+            </div>
+            <form class="control-form" id="predictorForm">
+              <label>
+                <span>Study hours</span>
+                <input type="range" id="studyHours" min="0" max="12" step="1" value="6">
+              </label>
+              <label>
+                <span>Practice tests</span>
+                <input type="range" id="practiceTests" min="0" max="10" step="1" value="5">
+              </label>
+              <label>
+                <span>Consistency</span>
+                <input type="range" id="consistency" min="0" max="100" step="5" value="70">
+              </label>
+            </form>
+            <div class="prediction-score">
+              <span id="predictionValue">0</span>
+              <small>predicted mastery</small>
+            </div>
+            <p class="explain-box" id="predictionExplanation"></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="chain">
+        <div class="section-heading">
+          <p class="eyebrow">Blockchain Layer</p>
+          <h2>Simulated credential chain.</h2>
+          <p>
+            This gives the AI story a trust layer. Every achievement entry references the previous hash so the judges can see
+            how learning data becomes a transparent record.
+          </p>
+        </div>
+        <div class="chain-layout">
+          <article class="chain-builder">
+            <form id="blockForm" class="block-form">
+              <label>
+                <span>Student</span>
+                <input id="studentName" type="text" value="Bakytzhan" maxlength="24">
+              </label>
+              <label>
+                <span>Achievement</span>
+                <input id="achievementName" type="text" value="AI Math Demo Completed" maxlength="40">
+              </label>
+              <label>
+                <span>Score</span>
+                <input id="achievementScore" type="number" value="94" min="0" max="100">
+              </label>
+              <button class="button button-primary" type="submit">Add Block</button>
+            </form>
+          </article>
+          <div class="chain-rail" id="chainRail"></div>
+        </div>
+      </section>
+
+      <section class="section contact-section" id="contact">
+        <div class="section-heading">
+          <p class="eyebrow">Contact</p>
+          <h2>Bakytzhan.dev, reframed for a stronger demo day.</h2>
+          <p>
+            Email: <a href="mailto:bakulya014@gmail.com">bakulya014@gmail.com</a><br>
+            GitHub: <a href="https://github.com/bakulya014-dot" target="_blank" rel="noreferrer">github.com/bakulya014-dot</a>
+          </p>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <!-- Scripts -->
-  <script>window.__AI_API_BASE = "https://ai-backend-kimep.onrender.com";</script>
-  <script src="i18n.js"></script>
   <script src="app.js"></script>
-
-  <!-- Fixed Chatbot Script -->
-  <script>
-    function askAI() {
-        const inputField = document.getElementById('user-input');
-        const input = inputField.value.trim();
-        const chatBox = document.getElementById('chat-box');
-
-        if (input === "") return;
-
-        // 1. Show user message
-        chatBox.innerHTML += `<p><b>You:</b> ${input}</p>`;
-
-        // 2. Simple AI Logic
-        let response = "";
-        const query = input.toLowerCase();
-
-        if (query.includes("quadratic")) {
-            response = "The quadratic formula is: $$x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}$$ Used for equations: $ax^2 + bx + c = 0$.";
-        } else if (query.includes("pythagorean") || query.includes("triangle")) {
-            response = "The Pythagorean theorem is: $$a^2 + b^2 = c^2$$ where $c$ is the hypotenuse.";
-        } else if (query.includes("circle") || query.includes("area")) {
-            response = "The area of a circle is: $$A = \\pi r^2$$";
-        } else {
-            response = "I'm still learning! Try asking about the 'Quadratic formula' or 'Pythagorean theorem'.";
-        }
-
-        // 3. Show AI message
-        chatBox.innerHTML += `<p><b>MathBot:</b> ${response}</p>`;
-
-        // 4. Reset MathJax to draw the symbols
-        if (window.MathJax) {
-            MathJax.typesetPromise();
-        }
-
-        // Scroll to bottom and clear input
-        chatBox.scrollTop = chatBox.scrollHeight;
-        inputField.value = "";
-    }
-
-    // Allow "Enter" key to work
-    document.getElementById('user-input').addEventListener("keypress", function(e) {
-        if (e.key === "Enter") askAI();
-    });
-  </script>
-  async function askAI() {
-    const inputField = document.getElementById('user-input');
-    const chatBox = document.getElementById('chat-box');
-    const loadingStr = document.getElementById('loading');
-    const userText = inputField.value.trim();
-
-    if (!userText) return;
-
-    // 1. Show User Message
-    chatBox.innerHTML += `<p style="color: #5dade2;"><b>You:</b> ${userText}</p>`;
-    inputField.value = "";
-    loadingStr.style.display = "block"; // Show loading
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    // 2. API CONFIGURATION
-    // Replace 'YOUR_API_KEY_HERE' with a real key from OpenAI or Groq
-    const API_KEY = 'YOUR_API_KEY_HERE'; 
-    const API_URL = "https://api.openai.com/v1/chat/completions"; 
-
-    try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo", // or "gpt-4"
-                messages: [
-                    {
-                        role: "system", 
-                        content: "You are an expert Math Tutor and Calculator. Always provide step-by-step logic. Use LaTeX for math formulas (wrap them in $$ for blocks and \\( \\) for inline). If asked to calculate, show the work."
-                    },
-                    { role: "user", content: userText }
-                ],
-                temperature: 0.7
-            })
-        });
-
-        const data = await response.json();
-        const aiResult = data.choices[0].message.content;
-
-        // 3. Display AI Result
-        chatBox.innerHTML += `<p><b>MathBot:</b> ${aiResult}</p>`;
-        
-    } catch (error) {
-        chatBox.innerHTML += `<p style="color: red;"><b>Error:</b> Could not connect to the AI brain. Make sure your API key is correct.</p>`;
-        console.error(error);
-    }
-
-    // 4. Finalize
-    loadingStr.style.display = "none";
-    if (window.MathJax) {
-        MathJax.typesetPromise(); // Draw the math symbols
-    }
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
 </body>
 </html>
+
    
